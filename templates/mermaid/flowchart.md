@@ -1,0 +1,5 @@
+# Flowchart
+
+```mermaid
+flowchart TD
+```

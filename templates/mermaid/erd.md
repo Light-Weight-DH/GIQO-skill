@@ -1,0 +1,5 @@
+# ERD
+
+```mermaid
+erDiagram
+```

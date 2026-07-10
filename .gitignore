@@ -1,0 +1,10 @@
+.DS_Store
+.codegraph/
+.omo/
+.playwright-mcp/
+node_modules/
+dist/
+coverage/
+test-results/
+local-guides/
+*.log

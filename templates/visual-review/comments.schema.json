@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GIQO Visual Review Comments",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "targetId", "page", "type", "severity", "comment", "createdAt", "status"],
+    "properties": {
+      "id": { "type": "string" },
+      "targetId": { "type": "string" },
+      "page": { "type": "string" },
+      "type": { "enum": ["change-request", "question", "approval", "risk"] },
+      "severity": { "enum": ["low", "medium", "high"] },
+      "comment": { "type": "string" },
+      "createdAt": { "type": "string", "format": "date-time" },
+      "status": { "enum": ["open", "accepted", "rejected", "resolved"] }
+    }
+  }
+}

@@ -8,9 +8,9 @@ Each comment maps to an HTML element through `targetId`, which matches `data-gqo
 
 ## Change request format
 
-Edit-mode feedback can also be exported as `change-requests.json` or `change-request-queue.json`.
+Edit-mode feedback can also be exported as saved UI change requests.
 
-Queued requests are ready for `/giqo-apply` or for a coding agent to read. Browser Apply only queues and exports requests in v1; it does not directly modify source code.
+Saved requests are ready for `/giqo-apply` or for a coding agent to read. Browser Apply only prepares the saved requests in v1; it does not directly modify source code.
 
 ## Lifecycle
 

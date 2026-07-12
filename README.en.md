@@ -40,7 +40,7 @@ ui-review/
 └── review-export.md
 ```
 
-The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element, add comments or edit requests, store feedback in the browser, and export `comments.json`, `review.md`, or queued change-request JSON. A later GIQO run can ingest that feedback and update `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, and unresolved-risk notes.
+The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element, add comments or edit requests, and store feedback in the browser. A later GIQO run can ingest that saved feedback and update `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, and unresolved-risk notes.
 
 Open the review screen with the bundled launcher:
 
@@ -62,7 +62,7 @@ node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
 node scripts/open-visual-review.mjs --no-open
 ```
 
-Browser Apply queues/exports change requests. It does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or hand the exported queue to your coding agent.
+Saved browser edit requests become work items GIQO can read in the next step. The browser artifact does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or ask naturally to apply the saved UI requests.
 
 ## Existing projects and commands
 

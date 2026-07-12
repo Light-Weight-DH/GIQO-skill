@@ -39,7 +39,10 @@ It must not edit application source.
 4. Preserve accepted comments and unresolved comments separately.
 5. Update implementation tasks for accepted UI changes.
 6. In brownfield mode, name affected existing screens and states.
+7. If the user asks to continue UI edits but no saved comments or edit requests exist, report the current state instead of inventing work.
 
 ## Completion report
 
 Report changed UI docs, review artifact paths, comment coverage, and how to open the review screen.
+
+If there is nothing to apply or ingest, say so directly, for example: `No saved UI edit requests were found for the current run.`

@@ -22,6 +22,7 @@ Apply approved GIQO outputs to the project.
 2. Active run outputs.
 3. Current target files.
 4. Apply policy from `references/command-policy.md`.
+5. Saved UI edit requests, when present.
 
 ## Writes
 
@@ -37,7 +38,10 @@ Apply approved GIQO outputs to the project.
 4. Write approved docs and review assets.
 5. For allowed source edits, make only the named changes.
 6. Run the checks named in the plan when source edits occur.
+7. If the user asks to apply UI edits but no saved edit requests exist, stop with a state report instead of making speculative changes.
 
 ## Completion report
 
 Report files written, files skipped, checks run, and any apply items left for a human or implementation agent.
+
+If there is nothing to apply, say so directly, for example: `No saved UI edit requests were found, so no UI changes were applied.`

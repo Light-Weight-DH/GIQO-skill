@@ -134,9 +134,9 @@ Only accepted edits can become applied edits. Applied means the actual screen ha
 
 ### v1 boundary
 
-Version 1 is queue and export first.
+Version 1 is saved-request and export first.
 
-The browser artifact may capture edit requests, queue them, show their status, and export them for GIQO ingestion. Applying a request in v1 means moving it into an exported queue for later document processing, not changing project files.
+The browser artifact may capture edit requests, save them for work, show their status, and export them for GIQO ingestion. Applying a request in v1 means preparing it for later document processing, not changing project files.
 
 After export, GIQO may ingest edit requests and update:
 
@@ -145,7 +145,7 @@ After export, GIQO may ingest edit requests and update:
 3. `09_RISK_AND_DECISIONS.md` when a request is deferred, rejected, or blocked
 4. regenerated `wireframe.html` or `mockup.html` when the workflow creates a fresh review artifact
 
-Version 1 must not directly patch application source code. It must not treat browser edits as live DOM mutations that persist to project files. It must not claim an edit is applied to the actual screen until GIQO has ingested the exported queue and updated the authoritative docs or regenerated review artifact.
+Version 1 must not directly patch application source code. It must not treat browser edits as live DOM mutations that persist to project files. It must not claim an edit is applied to the actual screen until GIQO has ingested the saved requests and updated the authoritative docs or regenerated review artifact.
 
 ### v2 boundary
 
@@ -154,7 +154,7 @@ Version 2 may add a session bridge between exported edit requests and an impleme
 Allowed v2 behavior:
 
 1. map accepted element edits to known component files inside a controlled work session
-2. hand queued requests to an agent as proposed work, not as already-applied changes
+2. hand saved requests to an agent as proposed work, not as already-applied changes
 3. propose small source patches for copy, spacing tokens, or component props
 4. keep a reviewable diff between proposed source changes and accepted edit requests
 5. require a verification step before marking source changes complete

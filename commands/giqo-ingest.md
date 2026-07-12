@@ -39,7 +39,10 @@ It must not edit application source.
 4. Update assumptions and risks when evidence changes them.
 5. Produce a delta for `/giqo-plan`, `/giqo-ui`, or `/giqo-apply`.
 6. In brownfield mode, note whether repo facts have drifted.
+7. If the requested feedback source is missing or empty, report the current state and recommended next action instead of creating placeholder deltas.
 
 ## Completion report
 
 Report ingested sources, affected docs, conflicts, assumptions changed, and the recommended next command.
+
+If no new feedback exists, say so directly, for example: `No saved review comments or UI edit requests were found for the current run.`

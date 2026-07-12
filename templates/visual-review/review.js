@@ -1,6 +1,7 @@
 (function () {
   const params = new URLSearchParams(location.search);
   const statuses = ["open", "queued", "running", "applied", "verified", "blocked", "rejected"];
+  const statusLabels = { open: "Open", queued: "Saved for work", running: "In progress", applied: "Applied", verified: "Verified", blocked: "Blocked", rejected: "Rejected" };
   const locked = new Set(["queued", "running"]);
   const key = `gqo-comments:${location.pathname}`;
   const state = { targetId: "", mode: params.get("mode") === "edit" ? "edit" : "comment", filter: "all", items: load() };
@@ -35,7 +36,7 @@
     for (const status of statuses) {
       const option = document.createElement("option");
       option.value = status;
-      option.textContent = status;
+      option.textContent = statusLabels[status] || status;
       option.selected = status === value;
       element.append(option);
     }
@@ -88,9 +89,9 @@
     const toolbar = document.createElement("div");
     toolbar.className = "gqo-toolbar";
     const actual = actualUrl();
-    toolbar.innerHTML = `<div class="gqo-toolbar-title"><strong>GIQO Visual Review</strong>${actual ? ` <a href="${attr(actual)}" target="_blank" rel="noreferrer">Actual screen</a>` : ""}</div><div class="gqo-toolbar-controls"><label>Mode <select id="gqo-mode"><option value="comment">Comment</option><option value="edit">Edit request</option></select></label><label>Status <select id="gqo-filter"><option value="all">All</option></select></label><button id="gqo-global" type="button">Global comment</button><button id="gqo-json" type="button">Export comments.json</button><button id="gqo-md" type="button">Export review.md</button><button id="gqo-requests" type="button">Export change requests</button><button id="gqo-queue" type="button">Apply as queue</button><button id="gqo-clear" type="button">Clear local comments</button></div>`;
+    toolbar.innerHTML = `<div class="gqo-toolbar-title"><strong>GIQO Visual Review</strong>${actual ? ` <a href="${attr(actual)}" target="_blank" rel="noreferrer">Actual screen</a>` : ""}</div><div class="gqo-toolbar-controls"><label>Mode <select id="gqo-mode"><option value="comment">Comment</option><option value="edit">Edit request</option></select></label><label>Status <select id="gqo-filter"><option value="all">All</option></select></label><button id="gqo-global" type="button">Global comment</button><button id="gqo-json" type="button">Export comments.json</button><button id="gqo-md" type="button">Export review.md</button><button id="gqo-requests" type="button">Export change requests</button><button id="gqo-queue" type="button">Save requests for work</button><button id="gqo-clear" type="button">Clear local comments</button></div>`;
     document.body.prepend(toolbar);
-    for (const status of statuses) byId("gqo-filter").append(new Option(status, status));
+    for (const status of statuses) byId("gqo-filter").append(new Option(statusLabels[status] || status, status));
     const panel = document.createElement("aside");
     panel.className = "gqo-panel";
     panel.hidden = true;
@@ -98,7 +99,7 @@
     document.body.append(panel);
     const list = document.createElement("aside");
     list.className = "gqo-comment-list";
-    list.innerHTML = `<strong>Review queue</strong><div id="gqo-comments"></div>`;
+    list.innerHTML = `<strong>Saved feedback</strong><div id="gqo-comments"></div>`;
     document.body.append(list);
     return panel;
   }
@@ -140,7 +141,7 @@
     if (!items.length) {
       const empty = document.createElement("p");
       empty.className = "gqo-empty";
-      empty.textContent = "No comments match this status.";
+      empty.textContent = state.filter === "all" ? "No saved comments or edit requests." : "No saved feedback matches this status.";
       box.append(empty);
     }
     for (const item of items) {
@@ -180,7 +181,7 @@
     byId("gqo-json").addEventListener("click", () => download("comments.json", JSON.stringify(state.items, null, 2), "application/json"));
     byId("gqo-md").addEventListener("click", () => download("review.md", markdown(), "text/markdown"));
     byId("gqo-requests").addEventListener("click", () => download("change-requests.json", JSON.stringify(changePayload(changeRequests()), null, 2), "application/json"));
-    byId("gqo-queue").addEventListener("click", () => { const queued = queueable(); const ids = new Set(queued.map((item) => item.id)); state.items.forEach((item) => { if (ids.has(item.id)) item.status = "queued"; }); state.filter = "all"; byId("gqo-filter").value = "all"; writeStorage(); download("change-request-queue.json", JSON.stringify(queuePayload(queued), null, 2), "application/json"); render(); });
+    byId("gqo-queue").addEventListener("click", () => { const queued = queueable(); const ids = new Set(queued.map((item) => item.id)); state.items.forEach((item) => { if (ids.has(item.id)) item.status = "queued"; }); state.filter = "all"; byId("gqo-filter").value = "all"; writeStorage(); download("saved-change-requests.json", JSON.stringify(queuePayload(queued), null, 2), "application/json"); render(); });
     byId("gqo-clear").addEventListener("click", () => { state.items = []; state.filter = "all"; byId("gqo-filter").value = "all"; writeStorage(); render(); });
   }
   function init() { const panel = createShell(); document.body.dataset.gqoMode = state.mode; wire(panel); render(); }

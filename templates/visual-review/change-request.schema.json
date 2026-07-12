@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://giqo.local/schemas/change-request.schema.json",
+  "title": "GIQO Visual Review Change Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "sourceCommentId",
+    "targetId",
+    "page",
+    "scope",
+    "requestedChange",
+    "rationale",
+    "acceptanceSignal",
+    "priority",
+    "status",
+    "createdAt",
+    "createdBy",
+    "checks"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "sourceCommentId": { "type": "string", "minLength": 1 },
+    "targetId": { "type": "string", "minLength": 1 },
+    "page": { "type": "string", "minLength": 1 },
+    "scope": { "enum": ["global", "screen", "element", "flow", "project"] },
+    "requestedChange": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1 },
+    "acceptanceSignal": { "type": "string", "minLength": 1 },
+    "priority": { "enum": ["low", "medium", "high"] },
+    "status": {
+      "enum": ["open", "queued", "running", "applied", "verified", "blocked", "rejected"]
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "createdBy": { "type": "string", "minLength": 1 },
+    "queuedAt": { "type": "string", "format": "date-time" },
+    "queuedBy": { "type": "string", "minLength": 1 },
+    "workStartedAt": { "type": "string", "format": "date-time" },
+    "assignedTo": { "type": "string", "minLength": 1 },
+    "linkedTask": { "type": "string", "minLength": 1 },
+    "appliedAt": { "type": "string", "format": "date-time" },
+    "appliedBy": { "type": "string", "minLength": 1 },
+    "changedArtifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "verifiedAt": { "type": "string", "format": "date-time" },
+    "verifiedBy": { "type": "string", "minLength": 1 },
+    "verificationNotes": { "type": "string", "minLength": 1 },
+    "blockedAt": { "type": "string", "format": "date-time" },
+    "blockedReason": { "type": "string", "minLength": 1 },
+    "blockedOwner": { "type": "string", "minLength": 1 },
+    "rejectedAt": { "type": "string", "format": "date-time" },
+    "rejectedBy": { "type": "string", "minLength": 1 },
+    "rejectionReason": { "type": "string", "minLength": 1 },
+    "implementationNotes": { "type": "string" },
+    "unresolvedReportTarget": {
+      "description": "Handoff document where unresolved open, blocked, or rejected requests are reported.",
+      "type": "string",
+      "const": "09_RISK_AND_DECISIONS.md"
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workStart", "completion"],
+      "properties": {
+        "workStart": { "$ref": "#/$defs/workStartChecks" },
+        "completion": { "$ref": "#/$defs/completionChecks" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "queued" } }, "required": ["status"] },
+      "then": { "required": ["queuedAt", "queuedBy"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "running" } }, "required": ["status"] },
+      "then": {
+        "required": ["workStartedAt", "assignedTo", "linkedTask"],
+        "properties": {
+          "checks": {
+            "properties": {
+              "workStart": { "$ref": "#/$defs/workStartChecksPassed" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "applied" } }, "required": ["status"] },
+      "then": {
+        "required": ["appliedAt", "appliedBy", "changedArtifacts"],
+        "properties": {
+          "checks": {
+            "properties": {
+              "workStart": { "$ref": "#/$defs/workStartChecksPassed" },
+              "completion": { "$ref": "#/$defs/completionChecksPassed" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "verified" } }, "required": ["status"] },
+      "then": {
+        "required": [
+          "appliedAt",
+          "appliedBy",
+          "changedArtifacts",
+          "verifiedAt",
+          "verifiedBy",
+          "verificationNotes"
+        ],
+        "properties": {
+          "checks": {
+            "properties": {
+              "workStart": { "$ref": "#/$defs/workStartChecksPassed" },
+              "completion": { "$ref": "#/$defs/completionChecksPassed" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "blocked" } }, "required": ["status"] },
+      "then": { "required": ["blockedAt", "blockedReason", "blockedOwner"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "rejected" } }, "required": ["status"] },
+      "then": { "required": ["rejectedAt", "rejectedBy", "rejectionReason"] }
+    }
+  ],
+  "$defs": {
+    "workStartChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "targetConfirmed",
+        "requestActionable",
+        "scopeConfirmed",
+        "acceptanceSignalDefined",
+        "dependenciesRecorded"
+      ],
+      "properties": {
+        "targetConfirmed": { "type": "boolean" },
+        "requestActionable": { "type": "boolean" },
+        "scopeConfirmed": { "type": "boolean" },
+        "acceptanceSignalDefined": { "type": "boolean" },
+        "dependenciesRecorded": { "type": "boolean" }
+      }
+    },
+    "completionChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactUpdated",
+        "acceptanceSignalObserved",
+        "documentsAligned",
+        "openQuestionsPreserved",
+        "changedArtifactsRecorded"
+      ],
+      "properties": {
+        "artifactUpdated": { "type": "boolean" },
+        "acceptanceSignalObserved": { "type": "boolean" },
+        "documentsAligned": { "type": "boolean" },
+        "openQuestionsPreserved": { "type": "boolean" },
+        "changedArtifactsRecorded": { "type": "boolean" }
+      }
+    },
+    "workStartChecksPassed": {
+      "allOf": [
+        { "$ref": "#/$defs/workStartChecks" },
+        {
+          "properties": {
+            "targetConfirmed": { "const": true },
+            "requestActionable": { "const": true },
+            "scopeConfirmed": { "const": true },
+            "acceptanceSignalDefined": { "const": true },
+            "dependenciesRecorded": { "const": true }
+          }
+        }
+      ]
+    },
+    "completionChecksPassed": {
+      "allOf": [
+        { "$ref": "#/$defs/completionChecks" },
+        {
+          "properties": {
+            "artifactUpdated": { "const": true },
+            "acceptanceSignalObserved": { "const": true },
+            "documentsAligned": { "const": true },
+            "openQuestionsPreserved": { "const": true },
+            "changedArtifactsRecorded": { "const": true }
+          }
+        }
+      ]
+    }
+  }
+}

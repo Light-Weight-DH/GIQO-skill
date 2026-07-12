@@ -13,6 +13,8 @@ Use GIQO for requests like:
 - `as-is 프로젝트 보고 설계 문서 만들어줘`
 - `문서/이미지/reference 기반으로 구현 계획 만들어줘`
 - `wireframe/mockup에 코멘트 반영해서 UI 문서 업데이트해줘`
+- `UI 수정 모드 열어줘`
+- `change-requests.json 반영해서 UI 수정 작업 진행해줘`
 
 Do not use GIQO for ordinary code edits, small bug fixes, or pure prose proofreading unless the user is asking for planning artifacts.
 
@@ -28,6 +30,7 @@ Inputs may include:
 - reference URLs or copied references
 - existing project files
 - exported review comments
+- exported change requests
 - partial plans
 - user corrections
 
@@ -104,17 +107,39 @@ Requirements:
 - Comments are stored separately from the HTML as exportable JSON and Markdown.
 - GIQO must be able to ingest exported comments and update `06_UI_UX_SPEC.md` and `05_IMPLEMENTATION_PLAN.md`.
 - Prefer `node scripts/open-visual-review.mjs <html-file>` to launch a local review server and open the browser.
+- Use `mode=comment` for observations and questions.
+- Use `mode=edit` for actionable UI change requests.
+- Browser Apply means queue/export change requests; it does not directly mutate source code or send a message to an AI session in v1.
+- Before starting UI work, check for open, queued, running, applied, verified, blocked, and rejected requests.
 
 Prefer this flow:
 
 ```text
 generate wireframe/mockup HTML
-→ user runs `node scripts/open-visual-review.mjs ui-review/mockup.html`
-→ user clicks elements and writes comments
-→ user exports comments.json/review.md
-→ GIQO ingests comments
-→ docs are updated
+→ user runs `node scripts/open-visual-review.mjs ui-review/mockup.html --mode edit`
+→ user writes element or global comments/change requests
+→ browser exports comments.json/review.md/change-request-queue.json
+→ GIQO ingests pending requests
+→ docs and implementation plan are updated
 ```
+
+## Existing project mode
+
+When GIQO runs inside an existing repository, treat the repo as source material and a constraint. Use `.giqo/` for run state, inputs, and generated review artifacts. Do not pollute application source folders with temporary planning files.
+
+Brownfield output must name existing behavior to preserve, likely affected files, regression checks, and unresolved repo assumptions before implementation starts.
+
+## Command set
+
+GIQO supports command-style workflows documented under `commands/`:
+
+- `/giqo-init` - create or update `.giqo` workspace state.
+- `/giqo-plan` - analyze inputs and create selected docs.
+- `/giqo-ui` - create or refresh UI review/edit artifacts.
+- `/giqo-apply` - apply approved docs, review assets, or explicitly allowed source changes.
+- `/giqo-ingest` - ingest comments, change requests, user corrections, or new evidence.
+
+Use `references/command-policy.md`, `references/existing-project-mode.md`, `references/ui-edit-mode.md`, and `references/comment-lifecycle.md` when these flows are active.
 
 ## Output quality bar
 
@@ -128,5 +153,6 @@ Every generated package must answer:
 - What should be built first?
 - Which files should an implementation agent read first?
 - Which diagrams or review artifacts are authoritative?
+- Are there unresolved open, queued, running, blocked, or rejected UI comments/change requests?
 
 If those questions are not answered, continue refining before returning.

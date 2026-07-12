@@ -1,9 +1,38 @@
 :root {
   color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --gqo-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --gqo-text: #1f2937;
+  --gqo-text-strong: #0f172a;
+  --gqo-muted: #64748b;
+  --gqo-surface: #ffffff;
+  --gqo-canvas: #f8fafc;
+  --gqo-line: #cbd5e1;
+  --gqo-line-soft: #e2e8f0;
+  --gqo-accent: #2563eb;
+  --gqo-accent-soft: #dbeafe;
+  --gqo-danger: #b91c1c;
+  --gqo-shadow: rgba(15, 23, 42, 0.16);
+  --gqo-space-1: 4px;
+  --gqo-space-2: 8px;
+  --gqo-space-3: 12px;
+  --gqo-space-4: 16px;
+  --gqo-space-5: 24px;
+  --gqo-space-6: 32px;
+  --gqo-space-7: 48px;
+  --gqo-space-8: 64px;
+  --gqo-space-9: 96px;
+  --gqo-container: 1120px;
+  --gqo-content-min: 220px;
+  --gqo-breakpoint: 900px;
+  --gqo-toolbar-offset: 88px;
+  --gqo-panel-clearance: 128px;
+  --gqo-radius-sm: 10px;
+  --gqo-radius-md: 16px;
+  --gqo-radius-lg: 24px;
+  font-family: var(--gqo-font);
   line-height: 1.5;
-  color: #1f2937;
-  background: #f8fafc;
+  color: var(--gqo-text);
+  background: var(--gqo-canvas);
 }
 
 body {
@@ -11,9 +40,9 @@ body {
 }
 
 .gqo-page {
-  max-width: 1120px;
+  max-width: var(--gqo-container);
   margin: 0 auto;
-  padding: 48px 24px 96px;
+  padding: var(--gqo-space-7) var(--gqo-space-5) var(--gqo-space-9);
 }
 
 .gqo-toolbar {
@@ -21,28 +50,97 @@ body {
   top: 0;
   z-index: 20;
   display: flex;
-  gap: 12px;
+  gap: var(--gqo-space-3);
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid #e5e7eb;
+  padding: var(--gqo-space-3) var(--gqo-space-4);
+  background: color-mix(in srgb, var(--gqo-surface) 92%, transparent);
+  border-bottom: 1px solid var(--gqo-line-soft);
   backdrop-filter: blur(12px);
 }
 
+.gqo-toolbar-title,
+.gqo-toolbar-controls,
+.gqo-panel-actions,
+.gqo-list-item div {
+  display: flex;
+  gap: var(--gqo-space-2);
+  align-items: center;
+}
+
+.gqo-toolbar-controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.gqo-toolbar a,
+.gqo-list-item span {
+  color: var(--gqo-muted);
+  font-size: 0.82rem;
+}
+
+.gqo-toolbar button,
+.gqo-panel button,
+.gqo-toolbar select,
+.gqo-panel select,
+.gqo-list-item select {
+  border: 1px solid var(--gqo-line);
+  border-radius: var(--gqo-radius-sm);
+  padding: var(--gqo-space-2) var(--gqo-space-3);
+  background: var(--gqo-surface);
+  color: var(--gqo-text-strong);
+  font: inherit;
+}
+
+.gqo-toolbar select,
 .gqo-toolbar button,
 .gqo-panel button {
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 8px 12px;
-  background: #ffffff;
-  color: #0f172a;
   cursor: pointer;
 }
 
+.gqo-toolbar-title,
+.gqo-toolbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.gqo-toolbar label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.gqo-toolbar a {
+  color: #2563eb;
+  font-weight: 700;
+}
+
 .gqo-toolbar button:hover,
-.gqo-panel button:hover {
-  border-color: #64748b;
+.gqo-panel button:hover,
+.gqo-toolbar select:hover,
+.gqo-panel select:hover,
+.gqo-list-item select:hover {
+  border-color: var(--gqo-muted);
+}
+
+.gqo-toolbar button:focus-visible,
+.gqo-panel button:focus-visible,
+.gqo-toolbar select:focus-visible,
+.gqo-panel select:focus-visible,
+.gqo-panel textarea:focus-visible,
+.gqo-list-item select:focus-visible {
+  outline: 3px solid var(--gqo-accent-soft);
+  outline-offset: 2px;
+}
+
+.gqo-toolbar button:disabled,
+.gqo-list-item select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 [data-gqo-id] {
@@ -50,82 +148,176 @@ body {
 }
 
 [data-gqo-id].gqo-highlight {
-  outline: 3px solid #2563eb;
-  outline-offset: 4px;
+  outline: 3px solid var(--gqo-accent);
+  outline-offset: var(--gqo-space-1);
 }
 
 .gqo-comment-pin {
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: calc(var(--gqo-space-3) * -1);
+  right: calc(var(--gqo-space-3) * -1);
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: var(--gqo-space-5);
+  height: var(--gqo-space-5);
   place-items: center;
   border-radius: 999px;
-  background: #2563eb;
-  color: #ffffff;
-  font-size: 12px;
+  background: var(--gqo-accent);
+  color: var(--gqo-surface);
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
-.gqo-panel {
+.gqo-panel,
+.gqo-comment-list {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
   z-index: 30;
-  width: min(360px, calc(100vw - 48px));
+  width: min(360px, calc(100vw - var(--gqo-space-7)));
+  padding: var(--gqo-space-4);
+  border: 1px solid var(--gqo-line);
+  border-radius: var(--gqo-radius-md);
+  background: var(--gqo-surface);
+  box-shadow: 0 24px 80px var(--gqo-shadow);
+}
+
+.gqo-panel {
+  right: var(--gqo-space-5);
+  bottom: var(--gqo-space-5);
+}
+
+.gqo-comment-list {
+  position: fixed;
+  top: 72px;
+  right: 24px;
+  z-index: 10;
+  width: min(340px, calc(100vw - 48px));
+  max-height: calc(100vh - 120px);
+  overflow: auto;
   padding: 16px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.2);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.12);
+}
+
+.gqo-list-item {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.gqo-list-item p {
+  margin: 0;
+  color: #475569;
+}
+
+.gqo-empty {
+  color: #64748b;
 }
 
 .gqo-panel[hidden] {
   display: none;
 }
 
-.gqo-panel label {
+.gqo-comment-list {
+  right: var(--gqo-space-5);
+  top: var(--gqo-toolbar-offset);
+  max-height: calc(100dvh - var(--gqo-panel-clearance));
+  overflow: auto;
+}
+
+.gqo-panel label,
+.gqo-toolbar label,
+.gqo-list-item label {
   display: block;
-  margin-top: 12px;
-  font-size: 13px;
+  font-size: 0.82rem;
   font-weight: 700;
+}
+
+.gqo-panel label {
+  margin-top: var(--gqo-space-3);
 }
 
 .gqo-panel textarea,
 .gqo-panel select {
   box-sizing: border-box;
   width: 100%;
-  margin-top: 6px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 10px;
-  font: inherit;
+  margin-top: var(--gqo-space-2);
 }
 
 .gqo-panel textarea {
-  min-height: 110px;
+  min-height: calc(var(--gqo-space-7) + var(--gqo-space-8));
+  border: 1px solid var(--gqo-line);
+  border-radius: var(--gqo-radius-sm);
+  padding: var(--gqo-space-3);
+  font: inherit;
   resize: vertical;
 }
 
 .gqo-panel-actions {
-  display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 14px;
+  margin-top: var(--gqo-space-4);
+}
+
+.gqo-list-item {
+  margin-top: var(--gqo-space-3);
+  padding: var(--gqo-space-3);
+  border: 1px solid var(--gqo-line-soft);
+  border-radius: var(--gqo-radius-sm);
+}
+
+.gqo-list-item p,
+.gqo-empty {
+  margin: var(--gqo-space-2) 0;
+  color: var(--gqo-text);
+}
+
+body[data-gqo-mode="edit"] [data-gqo-id].gqo-highlight {
+  outline-style: dashed;
 }
 
 .gqo-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 24px;
-  padding: 28px;
-  background: #ffffff;
-  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--gqo-line-soft);
+  border-radius: var(--gqo-radius-lg);
+  padding: var(--gqo-space-6);
+  background: var(--gqo-surface);
+  box-shadow: 0 16px 48px color-mix(in srgb, var(--gqo-shadow) 50%, transparent);
+}
+
+.gqo-review-note {
+  margin: 0 0 var(--gqo-space-5);
+  padding: var(--gqo-space-3) var(--gqo-space-4);
+  border: 1px solid var(--gqo-line-soft);
+  border-radius: var(--gqo-radius-md);
+  background: var(--gqo-accent-soft);
+  color: var(--gqo-text-strong);
 }
 
 .gqo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(var(--gqo-content-min), 1fr));
+  gap: var(--gqo-space-4);
+}
+
+@media (max-width: 900px) {
+  .gqo-toolbar,
+  .gqo-toolbar-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gqo-comment-list,
+  .gqo-panel {
+    inset-inline: var(--gqo-space-3);
+    width: auto;
+  }
+
+  .gqo-comment-list {
+    position: static;
+    margin: var(--gqo-space-3);
+    max-height: none;
+  }
 }

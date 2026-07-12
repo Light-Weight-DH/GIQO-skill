@@ -10,12 +10,13 @@ function printHelp() {
   console.log(`GIQO Visual Review launcher
 
 Usage:
-  node scripts/open-visual-review.mjs [html-file] [--port 8765] [--host 127.0.0.1] [--no-open]
+  node scripts/open-visual-review.mjs [html-file] [--port 8765] [--host 127.0.0.1] [--mode comment|edit] [--actual URL] [--no-open]
 
 Examples:
   node scripts/open-visual-review.mjs
   node scripts/open-visual-review.mjs templates/visual-review/wireframe.html
   node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
+  node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
   node scripts/open-visual-review.mjs --no-open
 `);
 }
@@ -25,6 +26,8 @@ function parseArgs(argv) {
     file: defaultFile,
     host: "127.0.0.1",
     port: 8765,
+    mode: "comment",
+    actual: "",
     openBrowser: true,
   };
 
@@ -48,6 +51,16 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === "--mode") {
+      options.mode = argv[index + 1] || options.mode;
+      index += 1;
+      continue;
+    }
+    if (arg === "--actual") {
+      options.actual = argv[index + 1] || options.actual;
+      index += 1;
+      continue;
+    }
     if (!arg.startsWith("--")) {
       options.file = arg;
     }
@@ -55,6 +68,9 @@ function parseArgs(argv) {
 
   if (!Number.isInteger(options.port) || options.port < 1 || options.port > 65535) {
     throw new Error("Port must be an integer between 1 and 65535.");
+  }
+  if (!["comment", "edit"].includes(options.mode)) {
+    throw new Error("Mode must be either comment or edit.");
   }
 
   return options;
@@ -119,7 +135,11 @@ function main() {
   }
   const root = resolve(filePath, "..");
   const fileName = filePath.split(sep).pop();
-  const url = `http://${options.host}:${options.port}/${encodeURIComponent(fileName)}`;
+  const query = new URLSearchParams({ mode: options.mode });
+  if (options.actual) {
+    query.set("actual", options.actual);
+  }
+  const url = `http://${options.host}:${options.port}/${encodeURIComponent(fileName)}?${query.toString()}`;
   const server = serve(root);
 
   server.listen(options.port, options.host, () => {

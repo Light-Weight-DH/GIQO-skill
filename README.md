@@ -40,12 +40,18 @@ ui-review/
 └── review-export.md
 ```
 
-The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element, add a comment, store comments in the browser, and export both `comments.json` and `review.md`. A later GIQO run can ingest those comments and update `06_UI_UX_SPEC.md` and `05_IMPLEMENTATION_PLAN.md`.
+The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element, add comments or edit requests, store feedback in the browser, and export `comments.json`, `review.md`, or queued change-request JSON. A later GIQO run can ingest that feedback and update `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, and unresolved-risk notes.
 
 Open the review screen with the bundled launcher:
 
 ```bash
 node scripts/open-visual-review.mjs templates/visual-review/mockup.html
+```
+
+Open edit-request mode and link to the actual app screen:
+
+```bash
+node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
 ```
 
 Useful variants:
@@ -55,6 +61,20 @@ node scripts/open-visual-review.mjs templates/visual-review/wireframe.html
 node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
 node scripts/open-visual-review.mjs --no-open
 ```
+
+Browser Apply queues/exports change requests. It does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or hand the exported queue to your coding agent.
+
+## Existing projects and commands
+
+For an existing repository, GIQO uses a `.giqo/` workspace for inputs, runs, and UI review artifacts while keeping application source files separate until an apply step is explicitly allowed.
+
+Command specs live in `commands/`:
+
+- `/giqo-init`
+- `/giqo-plan`
+- `/giqo-ui`
+- `/giqo-apply`
+- `/giqo-ingest`
 
 ## Platform support
 
@@ -84,6 +104,7 @@ Read ui-review/comments.json and update the UI/UX spec and implementation plan.
 GIQO-skill/
 ├── SKILL.md
 ├── README.md
+├── commands/
 ├── scripts/
 ├── references/
 ├── templates/

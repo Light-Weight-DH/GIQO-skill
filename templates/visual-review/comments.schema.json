@@ -5,15 +5,18 @@
   "items": {
     "type": "object",
     "required": ["id", "targetId", "page", "type", "severity", "comment", "createdAt", "status"],
+    "additionalProperties": true,
     "properties": {
       "id": { "type": "string" },
-      "targetId": { "type": "string" },
+      "targetId": { "type": "string", "description": "Matches data-gqo-id, or global for project-wide feedback." },
       "page": { "type": "string" },
+      "scope": { "enum": ["global", "screen", "element", "flow", "project"] },
+      "mode": { "enum": ["comment", "edit"] },
       "type": { "enum": ["change-request", "question", "approval", "risk"] },
       "severity": { "enum": ["low", "medium", "high"] },
       "comment": { "type": "string" },
       "createdAt": { "type": "string", "format": "date-time" },
-      "status": { "enum": ["open", "accepted", "rejected", "resolved"] }
+      "status": { "enum": ["open", "queued", "running", "applied", "verified", "blocked", "rejected"] }
     }
   }
 }

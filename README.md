@@ -1,34 +1,38 @@
 # GIQO Skill
 
-GIQO means **Garbage In, Quality Out**: a planning skill that turns messy project inputs into implementation-ready design documents.
+<p align="right">
+  <a href="README.en.md"><strong>Read in English</strong></a>
+</p>
 
-Drop rough requirements, screenshots, references, old project files, meeting notes, or partial ideas into an input folder. GIQO analyzes what is there, asks only the questions that matter, makes reasonable assumptions when the user skips, and generates only the documents the project actually needs.
+**GIQO**는 **Garbage In, Quality Out**의 줄임말입니다. 정리되지 않은 요구사항, 이미지, 레퍼런스, 기존 프로젝트 파일을 바탕으로 실제 구현에 쓸 수 있는 설계 문서와 작업 계획을 만드는 스킬입니다.
 
-## What GIQO creates
+사용자는 자료를 완벽하게 정리할 필요가 없습니다. 폴더에 대강 올려둔 문서, 스크린샷, 메모, 기존 코드, 리뷰 코멘트를 GIQO가 읽고 분류한 뒤, 필요한 질문만 하고, 사용자가 스킵하면 합리적인 가정을 기록하며, 프로젝트에 필요한 문서만 생성합니다.
 
-GIQO does not blindly create every possible planning document. It selects from these outputs based on the source material:
+## GIQO가 만드는 것
 
-- `00_INDEX.md` - navigation map for the generated design package
-- `01_REQUIREMENTS.md` - extracted requirements, constraints, and acceptance signals
-- `02_ASSUMPTIONS.md` - decisions made when source material was incomplete
-- `03_PRODUCT_SPEC.md` - user goals, scope, workflows, and non-goals
-- `04_ARCHITECTURE.md` - system shape, modules, data flow, and integration points
-- `05_IMPLEMENTATION_PLAN.md` - ordered work plan for an implementation agent
-- `06_UI_UX_SPEC.md` - UI structure, states, accessibility, wireframe/mockup notes
-- `07_DATA_MODEL.md` - entities, relationships, ERD, and persistence notes
-- `08_API_SPEC.md` - endpoints, contracts, auth, errors, and examples
-- `09_RISK_AND_DECISIONS.md` - tradeoffs, unresolved issues, and mitigation plan
+GIQO는 가능한 모든 문서를 무조건 만들지 않습니다. 입력 자료와 프로젝트 성격을 보고 필요한 산출물만 선택합니다.
 
-When useful, GIQO also emits Mermaid diagrams:
+- `00_INDEX.md` - 생성된 설계 패키지의 길잡이 문서
+- `01_REQUIREMENTS.md` - 요구사항, 제약, 수용 기준 정리
+- `02_ASSUMPTIONS.md` - 자료가 부족할 때 세운 가정 기록
+- `03_PRODUCT_SPEC.md` - 사용자 목표, 범위, 워크플로우, 비목표
+- `04_ARCHITECTURE.md` - 시스템 구조, 모듈, 데이터 흐름, 연동 지점
+- `05_IMPLEMENTATION_PLAN.md` - 구현 에이전트가 바로 따라갈 작업 계획
+- `06_UI_UX_SPEC.md` - UI 구조, 상태, 접근성, 와이어프레임/목업 메모
+- `07_DATA_MODEL.md` - 엔티티, 관계, ERD, 저장소 관련 메모
+- `08_API_SPEC.md` - API, 명령, 외부 계약, 오류 모델
+- `09_RISK_AND_DECISIONS.md` - 리스크, 결정 사항, 미해결 이슈
 
-- ERD for data-heavy systems
-- Flowchart for complex user or business flows
-- Sequence diagram for cross-system interactions
-- Gantt chart for timeline-driven work
+필요할 때는 Mermaid 다이어그램도 생성합니다.
+
+- ERD
+- Flowchart
+- Sequence Diagram
+- Gantt Chart
 
 ## Visual Review Mode
 
-For UI-heavy projects, GIQO can generate a browser-openable review artifact:
+UI가 중요한 프로젝트에서는 브라우저에서 열 수 있는 리뷰 화면을 생성할 수 있습니다.
 
 ```text
 ui-review/
@@ -40,21 +44,21 @@ ui-review/
 └── review-export.md
 ```
 
-The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element, add comments or edit requests, store feedback in the browser, and export `comments.json`, `review.md`, or queued change-request JSON. A later GIQO run can ingest that feedback and update `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, and unresolved-risk notes.
+생성된 HTML은 안정적인 `data-gqo-id`를 사용합니다. 사용자는 화면 요소를 클릭해서 코멘트나 수정 요청을 남기고, `comments.json`, `review.md`, `change-request-queue.json`으로 내보낼 수 있습니다. 이후 GIQO는 이 피드백을 읽어 `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, 미해결 리스크 문서를 갱신합니다.
 
-Open the review screen with the bundled launcher:
+리뷰 화면 실행:
 
 ```bash
 node scripts/open-visual-review.mjs templates/visual-review/mockup.html
 ```
 
-Open edit-request mode and link to the actual app screen:
+수정 요청 모드로 열고 실제 앱 화면을 연결:
 
 ```bash
 node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
 ```
 
-Useful variants:
+기타 예시:
 
 ```bash
 node scripts/open-visual-review.mjs templates/visual-review/wireframe.html
@@ -62,13 +66,13 @@ node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
 node scripts/open-visual-review.mjs --no-open
 ```
 
-Browser Apply queues/exports change requests. It does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or hand the exported queue to your coding agent.
+브라우저의 **Apply as queue**는 실제 소스 코드를 직접 수정하지 않습니다. v1에서는 수정 요청을 큐로 만들고 JSON으로 내보냅니다. 실제 반영은 `/giqo-apply` 또는 해당 JSON을 받은 코딩 에이전트가 수행합니다.
 
-## Existing projects and commands
+## 기존 프로젝트와 명령
 
-For an existing repository, GIQO uses a `.giqo/` workspace for inputs, runs, and UI review artifacts while keeping application source files separate until an apply step is explicitly allowed.
+기존 레포에 적용할 때는 `.giqo/` 작업 공간을 사용합니다. 입력 자료, 실행 기록, UI 리뷰 산출물을 애플리케이션 소스와 분리해 보관하고, 명시적인 apply 단계 전에는 소스 파일을 건드리지 않는 것을 기본값으로 합니다.
 
-Command specs live in `commands/`:
+명령 명세는 `commands/`에 있습니다.
 
 - `/giqo-init`
 - `/giqo-plan`
@@ -76,34 +80,41 @@ Command specs live in `commands/`:
 - `/giqo-apply`
 - `/giqo-ingest`
 
-## Platform support
+## 지원 플랫폼
 
-GIQO is written as a platform-neutral skill. Use the same repository from:
+GIQO는 플랫폼 중립 스킬로 작성되었습니다.
 
 - Claude / Claude Code
 - Codex
 - OpenCode
-- Any agent that can read `SKILL.md` and the `references/` directory
+- `SKILL.md`와 `references/`를 읽을 수 있는 에이전트 환경
 
-## Suggested invocation
-
-```text
-Use GIQO on ./input and create only the design docs needed for implementation.
-If something is unclear, ask the minimum questions; if I skip, make reasonable assumptions and record them.
-```
-
-For visual review feedback:
+## 사용 예시
 
 ```text
-Read ui-review/comments.json and update the UI/UX spec and implementation plan.
+./input을 GIQO로 분석해서 구현에 필요한 설계 문서만 만들어줘.
+불명확한 건 최소한만 질문하고, 내가 스킵하면 합리적으로 가정해서 기록해줘.
 ```
 
-## Repository layout
+UI 리뷰 피드백 반영:
+
+```text
+ui-review/comments.json을 읽고 UI/UX 명세와 구현 계획을 업데이트해줘.
+```
+
+수정 요청 반영:
+
+```text
+change-request-queue.json을 읽고 적용 가능한 UI 수정 작업을 진행해줘.
+```
+
+## 저장소 구조
 
 ```text
 GIQO-skill/
 ├── SKILL.md
 ├── README.md
+├── README.en.md
 ├── commands/
 ├── scripts/
 ├── references/
@@ -114,6 +125,6 @@ GIQO-skill/
 └── examples/
 ```
 
-## Core principle
+## 핵심 원칙
 
-The final output must work as an index and handoff package for a real builder. If an implementation agent cannot tell what to build, what to ignore, and where to start, the GIQO run is incomplete.
+목표는 문서를 많이 만드는 것이 아닙니다. 구현자가 무엇을 만들고, 무엇을 제외하고, 어디서 시작해야 하는지 바로 알 수 있는 설계 패키지를 만드는 것입니다.

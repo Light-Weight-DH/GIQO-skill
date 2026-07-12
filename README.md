@@ -82,8 +82,6 @@ node scripts/open-visual-review.mjs --no-open
 
 ## 지원 플랫폼
 
-GIQO는 플랫폼 중립 스킬로 작성되었습니다.
-
 - Claude / Claude Code
 - Codex
 - OpenCode

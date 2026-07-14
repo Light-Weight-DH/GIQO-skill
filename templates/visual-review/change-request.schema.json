@@ -29,13 +29,11 @@
     "rationale": { "type": "string", "minLength": 1 },
     "acceptanceSignal": { "type": "string", "minLength": 1 },
     "priority": { "enum": ["low", "medium", "high"] },
-    "status": {
-      "enum": ["open", "queued", "running", "applied", "verified", "blocked", "rejected"]
-    },
+    "status": { "enum": ["saved", "running", "applied", "failed"] },
     "createdAt": { "type": "string", "format": "date-time" },
     "createdBy": { "type": "string", "minLength": 1 },
-    "queuedAt": { "type": "string", "format": "date-time" },
-    "queuedBy": { "type": "string", "minLength": 1 },
+    "savedAt": { "type": "string", "format": "date-time" },
+    "savedBy": { "type": "string", "minLength": 1 },
     "workStartedAt": { "type": "string", "format": "date-time" },
     "assignedTo": { "type": "string", "minLength": 1 },
     "linkedTask": { "type": "string", "minLength": 1 },
@@ -46,18 +44,13 @@
       "minItems": 1,
       "items": { "type": "string", "minLength": 1 }
     },
-    "verifiedAt": { "type": "string", "format": "date-time" },
-    "verifiedBy": { "type": "string", "minLength": 1 },
     "verificationNotes": { "type": "string", "minLength": 1 },
-    "blockedAt": { "type": "string", "format": "date-time" },
-    "blockedReason": { "type": "string", "minLength": 1 },
-    "blockedOwner": { "type": "string", "minLength": 1 },
-    "rejectedAt": { "type": "string", "format": "date-time" },
-    "rejectedBy": { "type": "string", "minLength": 1 },
-    "rejectionReason": { "type": "string", "minLength": 1 },
+    "failedAt": { "type": "string", "format": "date-time" },
+    "failedBy": { "type": "string", "minLength": 1 },
+    "failureReason": { "type": "string", "minLength": 1 },
     "implementationNotes": { "type": "string" },
     "unresolvedReportTarget": {
-      "description": "Handoff document where unresolved open, blocked, or rejected requests are reported.",
+      "description": "Handoff document where unresolved saved, running, or failed requests are reported.",
       "type": "string",
       "const": "09_RISK_AND_DECISIONS.md"
     },
@@ -71,68 +64,7 @@
       }
     }
   },
-  "allOf": [
-    {
-      "if": { "properties": { "status": { "const": "queued" } }, "required": ["status"] },
-      "then": { "required": ["queuedAt", "queuedBy"] }
-    },
-    {
-      "if": { "properties": { "status": { "const": "running" } }, "required": ["status"] },
-      "then": {
-        "required": ["workStartedAt", "assignedTo", "linkedTask"],
-        "properties": {
-          "checks": {
-            "properties": {
-              "workStart": { "$ref": "#/$defs/workStartChecksPassed" }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": { "properties": { "status": { "const": "applied" } }, "required": ["status"] },
-      "then": {
-        "required": ["appliedAt", "appliedBy", "changedArtifacts"],
-        "properties": {
-          "checks": {
-            "properties": {
-              "workStart": { "$ref": "#/$defs/workStartChecksPassed" },
-              "completion": { "$ref": "#/$defs/completionChecksPassed" }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": { "properties": { "status": { "const": "verified" } }, "required": ["status"] },
-      "then": {
-        "required": [
-          "appliedAt",
-          "appliedBy",
-          "changedArtifacts",
-          "verifiedAt",
-          "verifiedBy",
-          "verificationNotes"
-        ],
-        "properties": {
-          "checks": {
-            "properties": {
-              "workStart": { "$ref": "#/$defs/workStartChecksPassed" },
-              "completion": { "$ref": "#/$defs/completionChecksPassed" }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": { "properties": { "status": { "const": "blocked" } }, "required": ["status"] },
-      "then": { "required": ["blockedAt", "blockedReason", "blockedOwner"] }
-    },
-    {
-      "if": { "properties": { "status": { "const": "rejected" } }, "required": ["status"] },
-      "then": { "required": ["rejectedAt", "rejectedBy", "rejectionReason"] }
-    }
-  ],
+  "allOf": [],
   "$defs": {
     "workStartChecks": {
       "type": "object",

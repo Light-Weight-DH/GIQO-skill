@@ -44,7 +44,7 @@ ui-review/
 └── review-export.md
 ```
 
-생성된 HTML은 안정적인 `data-gqo-id`를 사용합니다. 사용자는 화면 요소를 클릭해서 코멘트나 수정 요청을 남길 수 있습니다. 이후 GIQO는 저장된 피드백을 읽어 `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, 미해결 리스크 문서를 갱신합니다.
+생성된 HTML은 안정적인 `data-gqo-id`를 사용합니다. 사용자는 화면 요소를 클릭하거나 Target 목록에서 선택해 코멘트나 수정 요청을 남길 수 있습니다. 로컬 런처로 열면 피드백은 `.giqo/ui-review/<screen>/`에 자동 저장되고, 이후 GIQO는 저장된 피드백을 읽어 `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, 미해결 리스크 문서를 갱신합니다.
 
 리뷰 화면 실행:
 
@@ -66,7 +66,7 @@ node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
 node scripts/open-visual-review.mjs --no-open
 ```
 
-브라우저에서 저장한 수정 요청은 GIQO가 다음 단계에서 읽을 수 있는 작업 항목으로 보관됩니다. 브라우저 화면 자체는 실제 소스 코드를 직접 수정하지 않으며, 실제 반영은 `/giqo-apply` 또는 자연어로 “저장된 UI 수정 요청 진행해줘”라고 요청했을 때 수행합니다.
+브라우저에서 저장한 수정 요청은 GIQO가 다음 단계에서 읽을 수 있는 작업 항목으로 `.giqo/ui-review/<screen>/change-requests.json`에 보관됩니다. 동시에 현재 보이는 reviewable 요소 목록은 `targets.json`에 저장되어 다음 실행 때 초기 UI 매핑 시간을 줄입니다. 숨겨진 요소나 화면 밖 상태는 처음부터 전부 파악하지 않고, 사용자가 해당 상태를 열거나 요청할 때 lazy mapping합니다. 브라우저 화면 자체는 실제 소스 코드를 직접 수정하지 않으며, 실제 반영은 `/giqo-apply` 또는 자연어로 “저장된 UI 수정 요청 진행해줘”라고 요청했을 때 수행합니다.
 
 ## 기존 프로젝트와 명령
 
@@ -93,6 +93,54 @@ node scripts/open-visual-review.mjs --no-open
 - OpenCode
 - `SKILL.md`와 `references/`를 읽을 수 있는 에이전트 환경
 
+## 설치와 사용 준비
+
+GIQO는 별도 빌드가 필요한 패키지가 아니라, 에이전트가 읽는 **스킬 폴더**입니다. 설치의 핵심은 이 저장소를 에이전트가 접근할 수 있는 위치에 두고 `SKILL.md`, `commands/`, `references/`, `templates/`를 함께 읽게 하는 것입니다.
+
+### 1. 저장소 받기
+
+```bash
+git clone <repo-url> GIQO-skill
+cd GIQO-skill
+```
+
+### 2. 에이전트에 연결하기
+
+사용 중인 환경에 맞게 아래 중 하나로 연결합니다.
+
+| 환경 | 권장 방식 |
+|---|---|
+| Claude / Claude Code | 스킬 디렉터리로 `GIQO-skill/`을 등록하거나, 작업 세션에서 이 폴더의 `SKILL.md`를 참조하게 합니다. |
+| Codex | 작업 레포 옆이나 공용 skills 폴더에 두고, 요청 시 `GIQO-skill/SKILL.md`를 기준 지침으로 읽게 합니다. |
+| OpenCode | skills 경로에 이 폴더를 두거나, 세션에서 이 저장소를 열고 GIQO 요청을 실행합니다. |
+| 기타 에이전트 | `SKILL.md`를 시작 지침으로 읽고 `references/`, `commands/`, `templates/`를 같은 상대 경로로 접근하게 합니다. |
+
+### 3. 프로젝트에서 사용하기
+
+새 프로젝트나 기존 레포에서 다음처럼 요청하면 됩니다.
+
+```text
+GIQO로 이 프로젝트 입력 자료를 분석해서 구현에 필요한 설계 문서만 만들어줘.
+```
+
+기존 프로젝트라면 GIQO는 기본적으로 `.giqo/` 작업 공간에 자료와 실행 결과를 정리합니다. 애플리케이션 소스 파일은 명시적인 apply 단계 전에는 수정하지 않습니다.
+
+### 4. UI 리뷰 실행 준비
+
+Visual Review 화면을 직접 열려면 Node.js가 필요합니다. 별도 패키지 설치 없이 저장소의 스크립트를 실행합니다.
+
+```bash
+node scripts/open-visual-review.mjs templates/visual-review/mockup.html
+```
+
+저장된 UI 수정 요청을 실제 작업으로 반영하고 싶으면 자연어로 요청하면 됩니다.
+
+```text
+저장된 UI 수정 요청 있으면 확인하고 적용 가능한 작업을 진행해줘.
+```
+
+저장된 요청이나 필요한 문서가 없으면 GIQO는 현재 상태를 알려주고 멈춥니다.
+
 ## 사용 예시
 
 아래 문장은 고정된 명령어가 아니라 예시입니다. 같은 의도라면 자연어로 말해도 됩니다.
@@ -105,7 +153,7 @@ node scripts/open-visual-review.mjs --no-open
 UI 리뷰 피드백 반영 예시:
 
 ```text
-ui-review/comments.json을 읽고 UI/UX 명세와 구현 계획을 업데이트해줘.
+.giqo에 저장된 UI 리뷰 피드백을 읽고 UI/UX 명세와 구현 계획을 업데이트해줘.
 ```
 
 같은 의미의 자연어 예시:

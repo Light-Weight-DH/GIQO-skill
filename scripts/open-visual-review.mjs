@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { createReadStream, existsSync, statSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
-import { extname, isAbsolute, join, normalize, resolve, sep } from "node:path";
+import { basename, extname, isAbsolute, join, normalize, resolve, sep } from "node:path";
 import { spawn } from "node:child_process";
 
 const defaultFile = "templates/visual-review/mockup.html";
@@ -114,8 +115,62 @@ function safePath(root, requestUrl) {
   return fullPath;
 }
 
-function serve(root) {
+function stateDir(filePath) {
+  const screen = basename(filePath, extname(filePath)) || "review";
+  return resolve(process.cwd(), ".giqo", "ui-review", screen);
+}
+
+function readBody(request) {
+  return new Promise((resolveBody, rejectBody) => {
+    const chunks = [];
+    request.on("data", (chunk) => chunks.push(chunk));
+    request.on("end", () => resolveBody(Buffer.concat(chunks).toString("utf8")));
+    request.on("error", rejectBody);
+  });
+}
+
+async function writeReviewState(dir, body) {
+  const payload = JSON.parse(body);
+  await mkdir(dir, { recursive: true });
+  await Promise.all([
+    writeFile(join(dir, "state.json"), JSON.stringify(payload, null, 2), "utf8"),
+    writeFile(join(dir, "targets.json"), JSON.stringify(payload.targets || [], null, 2), "utf8"),
+    writeFile(join(dir, "comments.json"), JSON.stringify(payload.comments || [], null, 2), "utf8"),
+    writeFile(join(dir, "change-requests.json"), JSON.stringify(payload.changeRequests || { requests: [] }, null, 2), "utf8"),
+    writeFile(join(dir, "review.md"), payload.markdown || "# Visual Review Comments\n", "utf8"),
+  ]);
+}
+
+async function readReviewState(dir) {
+  try {
+    return await readFile(join(dir, "state.json"), "utf8");
+  } catch {
+    return "{}";
+  }
+}
+
+function json(response, status, body) {
+  response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
+  response.end(JSON.stringify(body));
+}
+
+function serve(root, dir) {
   return createServer((request, response) => {
+    const url = new URL(request.url || "/", "http://localhost");
+    if (url.pathname === "/__gqo/state" && request.method === "GET") {
+      readReviewState(dir).then((body) => {
+        response.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+        response.end(body);
+      }).catch((error) => json(response, 500, { ok: false, error: String(error) }));
+      return;
+    }
+    if (url.pathname === "/__gqo/save" && request.method === "POST") {
+      readBody(request)
+        .then((body) => writeReviewState(dir, body))
+        .then(() => json(response, 200, { ok: true }))
+        .catch((error) => json(response, 400, { ok: false, error: String(error) }));
+      return;
+    }
     const filePath = safePath(root, request.url || "/");
     if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) {
       response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
@@ -134,16 +189,18 @@ function main() {
     throw new Error(`Review HTML file not found: ${filePath}`);
   }
   const root = resolve(filePath, "..");
+  const dir = stateDir(filePath);
   const fileName = filePath.split(sep).pop();
   const query = new URLSearchParams({ mode: options.mode });
   if (options.actual) {
     query.set("actual", options.actual);
   }
   const url = `http://${options.host}:${options.port}/${encodeURIComponent(fileName)}?${query.toString()}`;
-  const server = serve(root);
+  const server = serve(root, dir);
 
   server.listen(options.port, options.host, () => {
     console.log(`GIQO Visual Review is running at ${url}`);
+    console.log(`Review state saves to ${dir}`);
     console.log("Press Ctrl+C to stop the server.");
     if (options.openBrowser) {
       openUrl(url);

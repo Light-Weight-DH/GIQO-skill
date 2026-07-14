@@ -2,15 +2,16 @@
 
 Visual Review Mode makes wireframes and mockups commentable in the browser.
 
-## MVP behavior
+## Behavior
 
-1. Open `wireframe.html` or `mockup.html` in a browser.
+1. Open `wireframe.html` or `mockup.html` with `node scripts/open-visual-review.mjs`.
 2. Hover reviewable elements to see a highlight.
-3. Click a reviewable element to open a comment panel.
-4. Write a comment and optional severity/type.
-5. Store comments in `localStorage`.
-6. Export `comments.json` for machine ingestion.
-7. Export `review.md` for human review.
+3. Click a reviewable element, choose it from the Target dropdown, or choose Global.
+4. Write a comment or edit request with severity.
+5. Save feedback automatically to `.giqo/ui-review/<screen>/`.
+6. Use Refresh to reload the latest saved review state.
+7. Reuse `.giqo/ui-review/<screen>/targets.json` to avoid remapping the same screen on every run.
+8. Discover visible targets first; map hidden or offscreen states lazily when they become relevant.
 
 ## Element contract
 
@@ -24,15 +25,18 @@ Use stable semantic IDs, not visual positions.
 
 ## Comment ingestion
 
-When `comments.json` is provided later, GIQO should:
+When `.giqo/ui-review/<screen>/comments.json` or `change-requests.json` exists, GIQO should:
 
+- load `targets.json` first when present
 - map each comment to the target `data-gqo-id`
 - update UI/UX decisions
-- add implementation tasks for accepted change requests
+- add implementation tasks for actionable change requests
 - preserve unresolved comments in `09_RISK_AND_DECISIONS.md`
 
 ## Constraints
 
-- Static HTML cannot reliably write local files directly.
-- Use download export for MVP.
-- Treat browser `localStorage` as temporary convenience, not canonical storage.
+- Static HTML cannot reliably write local files directly without the local launcher.
+- Treat browser `localStorage` as a temporary cache.
+- Treat `.giqo/ui-review/<screen>/` as the local canonical review state when the launcher is used.
+- Treat `targets.json` as a cache for speed, not as the source of truth.
+- Do not block initial review setup on hidden, collapsed, modal-only, or offscreen targets.

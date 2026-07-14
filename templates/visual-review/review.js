@@ -1,8 +1,7 @@
 (function () {
   const params = new URLSearchParams(location.search);
-  const statuses = ["open", "queued", "running", "applied", "verified", "blocked", "rejected"];
-  const statusLabels = { open: "Open", queued: "Saved for work", running: "In progress", applied: "Applied", verified: "Verified", blocked: "Blocked", rejected: "Rejected" };
-  const locked = new Set(["queued", "running"]);
+  const statuses = ["saved", "running", "applied", "failed"];
+  const statusLabels = { saved: "Saved", running: "In progress", applied: "Applied", failed: "Failed" };
   const key = `gqo-comments:${location.pathname}`;
   const state = { targetId: "", mode: params.get("mode") === "edit" ? "edit" : "comment", filter: "all", items: load() };
 
@@ -10,7 +9,14 @@
   function page() { return location.pathname.split("/").pop() || "review.html"; }
   function readStorage() { try { return localStorage.getItem(key); } catch (error) { return null; } }
   function writeStorage() { try { localStorage.setItem(key, JSON.stringify(state.items)); } catch (error) { return; } }
-  function load() { try { const parsed = JSON.parse(readStorage() || "[]"); return Array.isArray(parsed) ? parsed : []; } catch (error) { return []; } }
+  function status(value) {
+    if (value === "running" || value === "applied" || value === "failed") return value;
+    if (value === "blocked" || value === "rejected") return "failed";
+    if (value === "verified") return "applied";
+    return "saved";
+  }
+  function normalizeItems(items) { return items.map((item) => ({ ...item, status: status(item.status) })); }
+  function load() { try { const parsed = JSON.parse(readStorage() || "[]"); return Array.isArray(parsed) ? normalizeItems(parsed) : []; } catch (error) { return []; } }
   function safe(text) { return text.replaceAll("`", "\\`").replaceAll("<", "&lt;").replaceAll(">", "&gt;"); }
   function attr(text) { return safe(text).replaceAll("&", "&amp;").replaceAll('"', "&quot;"); }
   function actualUrl() {
@@ -21,14 +27,6 @@
     } catch {
       return "";
     }
-  }
-  function download(name, body, type) {
-    const url = URL.createObjectURL(new Blob([body], { type }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = name;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
   function select(value, id) {
     const element = document.createElement("select");
@@ -42,14 +40,42 @@
     }
     return element;
   }
+  function visible(element) {
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return rect.width > 0 && rect.height > 0 && rect.bottom >= 0 && rect.right >= 0 && rect.top <= innerHeight && rect.left <= innerWidth && style.visibility !== "hidden" && style.display !== "none";
+  }
+  function targetElements() {
+    return [...document.querySelectorAll("[data-gqo-id]")].filter(visible);
+  }
+  function targets() {
+    return [{ id: "global", label: "Global" }].concat(targetElements().map((element) => ({ id: element.getAttribute("data-gqo-id") || "", label: element.getAttribute("data-gqo-id") || "Untitled" })).filter((item) => item.id));
+  }
+  function targetManifest() {
+    return targets().map((target) => {
+      const element = target.id === "global" ? document.body : document.querySelector(`[data-gqo-id="${CSS.escape(target.id)}"]`);
+      const rect = element?.getBoundingClientRect();
+      return { id: target.id, label: target.label, scope: target.id === "global" ? "global" : scopeFor(target.id), editable: element?.getAttribute("data-gqo-editable") || "", text: target.id === "global" ? "" : (element?.textContent || "").trim().replace(/\s+/g, " ").slice(0, 160), bounds: rect ? { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) } : null };
+    });
+  }
+  function targetSelect() {
+    const element = document.createElement("select");
+    element.id = "gqo-target";
+    for (const target of targets()) {
+      const option = document.createElement("option");
+      option.value = target.id;
+      option.textContent = target.label;
+      element.append(option);
+    }
+    return element;
+  }
   function scopeFor(targetId) {
     if (targetId === "global") return "global";
     const target = document.querySelector(`[data-gqo-id="${CSS.escape(targetId)}"]`);
     return target?.getAttribute("data-gqo-scope") || "element";
   }
   function changeRequests() { return state.items.filter((item) => item.type === "change-request"); }
-  function queueable() { return changeRequests().filter((item) => item.status === "open" || item.status === "blocked"); }
-  function requestFrom(item, status) {
+  function requestFrom(item, requestStatus) {
     const now = new Date().toISOString();
     return {
       id: item.id.replace(/^comment-/, "change-"),
@@ -61,19 +87,16 @@
       rationale: item.rationale || "Captured from visual review edit request.",
       acceptanceSignal: item.acceptanceSignal || "Updated UI matches the requested visual review change.",
       priority: item.severity,
-      status,
+      status: status(requestStatus),
       createdAt: item.createdAt,
       createdBy: "visual-review",
-      queuedAt: status === "queued" ? now : undefined,
-      queuedBy: status === "queued" ? "visual-review" : undefined,
+      savedAt: item.savedAt || now,
+      savedBy: "visual-review",
       checks: {
         workStart: { targetConfirmed: true, requestActionable: true, scopeConfirmed: true, acceptanceSignalDefined: true, dependenciesRecorded: false },
         completion: { artifactUpdated: false, acceptanceSignalObserved: false, documentsAligned: false, openQuestionsPreserved: true, changedArtifactsRecorded: false },
       },
     };
-  }
-  function queuePayload(items) {
-    return { schema: "gqo.change-request-queue.v1", source: page(), actual: actualUrl(), exportedAt: new Date().toISOString(), requests: items.map((item) => requestFrom(item, "queued")) };
   }
   function changePayload(items) {
     return { schema: "gqo.change-requests.v1", source: page(), actual: actualUrl(), exportedAt: new Date().toISOString(), requests: items.map((item) => requestFrom(item, item.status)) };
@@ -85,17 +108,34 @@
     }
     return lines.join("\n");
   }
+  function syncPayload() {
+    return { schema: "gqo.visual-review-state.v1", source: page(), actual: actualUrl(), savedAt: new Date().toISOString(), targets: targetManifest(), comments: state.items, changeRequests: changePayload(changeRequests()), markdown: markdown() };
+  }
+  function syncWorkspace() {
+    writeStorage();
+    fetch("/__gqo/save", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(syncPayload()) }).catch(() => {});
+  }
+  function refreshWorkspace() {
+    fetch("/__gqo/state").then((response) => response.ok ? response.json() : {}).then((payload) => {
+      if (Array.isArray(payload.comments)) {
+        state.items = normalizeItems(payload.comments);
+        writeStorage();
+        render();
+      }
+    }).catch(() => { state.items = load(); render(); });
+  }
   function createShell() {
     const toolbar = document.createElement("div");
     toolbar.className = "gqo-toolbar";
     const actual = actualUrl();
-    toolbar.innerHTML = `<div class="gqo-toolbar-title"><strong>GIQO Visual Review</strong>${actual ? ` <a href="${attr(actual)}" target="_blank" rel="noreferrer">Actual screen</a>` : ""}</div><div class="gqo-toolbar-controls"><label>Mode <select id="gqo-mode"><option value="comment">Comment</option><option value="edit">Edit request</option></select></label><label>Status <select id="gqo-filter"><option value="all">All</option></select></label><button id="gqo-global" type="button">Global comment</button><button id="gqo-json" type="button">Export comments.json</button><button id="gqo-md" type="button">Export review.md</button><button id="gqo-requests" type="button">Export change requests</button><button id="gqo-queue" type="button">Save requests for work</button><button id="gqo-clear" type="button">Clear local comments</button></div>`;
+    toolbar.innerHTML = `<div class="gqo-toolbar-title"><strong>GIQO Visual Review</strong>${actual ? ` <a href="${attr(actual)}" target="_blank" rel="noreferrer">Actual screen</a>` : ""}<span id="gqo-sync">Auto-save ready</span></div><div class="gqo-toolbar-controls"><label>Mode <select id="gqo-mode"><option value="comment">Comment</option><option value="edit">Edit request</option></select></label><label>Status <select id="gqo-filter"><option value="all">All</option></select></label><label>Target <span id="gqo-target-slot"></span></label><button id="gqo-refresh" type="button">Refresh</button><button id="gqo-clear" type="button">Clear</button></div>`;
     document.body.prepend(toolbar);
     for (const status of statuses) byId("gqo-filter").append(new Option(statusLabels[status] || status, status));
+    byId("gqo-target-slot").append(targetSelect());
     const panel = document.createElement("aside");
     panel.className = "gqo-panel";
     panel.hidden = true;
-    panel.innerHTML = `<strong id="gqo-panel-title">GIQO comment</strong><p id="gqo-target-label"></p><label>Type<select id="gqo-type"><option value="change-request">Change request</option><option value="question">Question</option><option value="approval">Approval</option><option value="risk">Risk</option></select></label><label>Severity<select id="gqo-severity"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label><label>Comment<textarea id="gqo-comment" placeholder="Write feedback or requested edit"></textarea></label><div class="gqo-panel-actions"><button id="gqo-cancel" type="button">Cancel</button><button id="gqo-save" type="button">Save</button></div>`;
+    panel.innerHTML = `<strong id="gqo-panel-title">GIQO comment</strong><p id="gqo-target-label"></p><label>Severity<select id="gqo-severity"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label><label>Comment<textarea id="gqo-comment" placeholder="Write feedback or requested edit"></textarea></label><div class="gqo-panel-actions"><button id="gqo-cancel" type="button">Cancel</button><button id="gqo-save" type="button">Save</button></div>`;
     document.body.append(panel);
     const list = document.createElement("aside");
     list.className = "gqo-comment-list";
@@ -106,8 +146,8 @@
   function openPanel(panel, targetId) {
     state.targetId = targetId;
     byId("gqo-panel-title").textContent = state.mode === "edit" ? "GIQO edit request" : "GIQO comment";
-    byId("gqo-type").value = state.mode === "edit" ? "change-request" : "question";
     byId("gqo-target-label").textContent = targetId === "global" ? "Global project feedback" : targetId;
+    byId("gqo-target").value = targetId;
     byId("gqo-comment").value = "";
     panel.hidden = false;
     byId("gqo-comment").focus();
@@ -115,8 +155,8 @@
   function savePanel(panel) {
     const comment = byId("gqo-comment").value.trim();
     if (!state.targetId || !comment) return;
-    state.items.push({ id: `comment-${Date.now()}`, targetId: state.targetId, page: page(), mode: state.mode, scope: scopeFor(state.targetId), type: byId("gqo-type").value, severity: byId("gqo-severity").value, comment, createdAt: new Date().toISOString(), status: "open" });
-    writeStorage();
+    state.items.push({ id: `comment-${Date.now()}`, targetId: state.targetId, page: page(), mode: state.mode, scope: scopeFor(state.targetId), type: state.mode === "edit" ? "change-request" : "question", severity: byId("gqo-severity").value, comment, createdAt: new Date().toISOString(), savedAt: new Date().toISOString(), status: "saved" });
+    syncWorkspace();
     render();
     panel.hidden = true;
   }
@@ -153,11 +193,9 @@
       body.textContent = item.comment;
       const picker = select(item.status);
       picker.dataset.gqoStatus = item.id;
-      picker.disabled = locked.has(item.status);
       card.append(title, body, picker);
       box.append(card);
     }
-    byId("gqo-queue").disabled = queueable().length === 0 || changeRequests().some((item) => locked.has(item.status));
   }
   function render() { renderPins(); renderList(); }
   function wire(panel) {
@@ -174,16 +212,13 @@
     byId("gqo-mode").value = state.mode;
     byId("gqo-mode").addEventListener("change", (event) => { state.mode = event.target.value; document.body.dataset.gqoMode = state.mode; });
     byId("gqo-filter").addEventListener("change", (event) => { state.filter = event.target.value; renderList(); });
-    byId("gqo-comments").addEventListener("change", (event) => { const item = state.items.find((entry) => entry.id === event.target.dataset.gqoStatus); if (item && !locked.has(item.status)) { item.status = event.target.value; writeStorage(); render(); } });
-    byId("gqo-global").addEventListener("click", () => openPanel(panel, "global"));
+    byId("gqo-target").addEventListener("change", (event) => openPanel(panel, event.target.value));
+    byId("gqo-comments").addEventListener("change", (event) => { const item = state.items.find((entry) => entry.id === event.target.dataset.gqoStatus); if (item) { item.status = event.target.value; syncWorkspace(); render(); } });
+    byId("gqo-refresh").addEventListener("click", refreshWorkspace);
     byId("gqo-cancel").addEventListener("click", () => { panel.hidden = true; });
     byId("gqo-save").addEventListener("click", () => savePanel(panel));
-    byId("gqo-json").addEventListener("click", () => download("comments.json", JSON.stringify(state.items, null, 2), "application/json"));
-    byId("gqo-md").addEventListener("click", () => download("review.md", markdown(), "text/markdown"));
-    byId("gqo-requests").addEventListener("click", () => download("change-requests.json", JSON.stringify(changePayload(changeRequests()), null, 2), "application/json"));
-    byId("gqo-queue").addEventListener("click", () => { const queued = queueable(); const ids = new Set(queued.map((item) => item.id)); state.items.forEach((item) => { if (ids.has(item.id)) item.status = "queued"; }); state.filter = "all"; byId("gqo-filter").value = "all"; writeStorage(); download("saved-change-requests.json", JSON.stringify(queuePayload(queued), null, 2), "application/json"); render(); });
-    byId("gqo-clear").addEventListener("click", () => { state.items = []; state.filter = "all"; byId("gqo-filter").value = "all"; writeStorage(); render(); });
+    byId("gqo-clear").addEventListener("click", () => { state.items = []; state.filter = "all"; byId("gqo-filter").value = "all"; syncWorkspace(); render(); });
   }
-  function init() { const panel = createShell(); document.body.dataset.gqoMode = state.mode; wire(panel); render(); }
+  function init() { const panel = createShell(); document.body.dataset.gqoMode = state.mode; wire(panel); refreshWorkspace(); render(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();

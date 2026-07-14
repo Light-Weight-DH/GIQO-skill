@@ -14,7 +14,7 @@ Use GIQO for requests like:
 - `문서/이미지/reference 기반으로 구현 계획 만들어줘`
 - `wireframe/mockup에 코멘트 반영해서 UI 문서 업데이트해줘`
 - `UI 수정 모드 열어줘`
-- `change-requests.json 반영해서 UI 수정 작업 진행해줘`
+- `저장된 UI 수정 요청 반영해서 UI 수정 작업 진행해줘`
 
 Do not use GIQO for ordinary code edits, small bug fixes, or pure prose proofreading unless the user is asking for planning artifacts.
 
@@ -29,8 +29,8 @@ Inputs may include:
 - hand-written notes
 - reference URLs or copied references
 - existing project files
-- exported review comments
-- exported change requests
+- saved review comments
+- saved change requests
 - partial plans
 - user corrections
 
@@ -102,15 +102,17 @@ When UI review is needed, generate a `ui-review/` package using the files in `te
 Requirements:
 
 - Every reviewable element must have a stable `data-gqo-id`.
+- Reuse `.giqo/ui-review/<screen>/targets.json` when present to avoid repeating initial target mapping.
+- For first-run mapping, discover currently visible targets first and lazily map hidden or offscreen states only when they become relevant.
 - Wireframes prioritize structure and hierarchy.
 - Mockups prioritize visual direction, spacing, typography, color, and component feel.
-- Comments are stored separately from the HTML as exportable JSON and Markdown.
-- GIQO must be able to ingest exported comments and update `06_UI_UX_SPEC.md` and `05_IMPLEMENTATION_PLAN.md`.
+- Comments and edit requests are stored separately from the HTML under `.giqo/ui-review/<screen>/` when launched locally.
+- GIQO must be able to ingest saved comments and update `06_UI_UX_SPEC.md` and `05_IMPLEMENTATION_PLAN.md`.
 - Prefer `node scripts/open-visual-review.mjs <html-file>` to launch a local review server and open the browser.
 - Use `mode=comment` for observations and questions.
 - Use `mode=edit` for actionable UI change requests.
-- Browser Apply means queue/export change requests; it does not directly mutate source code or send a message to an AI session in v1.
-- Before starting UI work, check for open, queued, running, applied, verified, blocked, and rejected requests.
+- Browser save records comments and edit requests; it does not directly mutate source code or send a message to an AI session in v1.
+- Before starting UI work, check for `saved`, `running`, `applied`, and `failed` requests.
 
 Prefer this flow:
 
@@ -118,7 +120,7 @@ Prefer this flow:
 generate wireframe/mockup HTML
 → user runs `node scripts/open-visual-review.mjs ui-review/mockup.html --mode edit`
 → user writes element or global comments/change requests
-→ browser exports comments.json/review.md/change-request-queue.json
+→ browser auto-saves `.giqo/ui-review/<screen>/targets.json`, `comments.json`, `change-requests.json`, and `review.md`
 → GIQO ingests pending requests
 → docs and implementation plan are updated
 ```
@@ -153,6 +155,6 @@ Every generated package must answer:
 - What should be built first?
 - Which files should an implementation agent read first?
 - Which diagrams or review artifacts are authoritative?
-- Are there unresolved open, queued, running, blocked, or rejected UI comments/change requests?
+- Are there unresolved saved, running, or failed UI comments/change requests?
 
 If those questions are not answered, continue refining before returning.

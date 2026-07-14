@@ -30,7 +30,7 @@ Every editable unit should map to a `data-gqo-id` when it appears in HTML:
 data-gqo-id="screen.section.element"
 ```
 
-Each exported editable unit should also carry enough metadata to reconnect the review action to the intended UI target:
+Each saved editable unit should also carry enough metadata to reconnect the review action to the intended UI target:
 
 1. `targetId`: the stable `data-gqo-id` value.
 2. `targetPath`: the semantic hierarchy from project or flow down to screen, section, and element.
@@ -40,6 +40,42 @@ Each exported editable unit should also carry enough metadata to reconnect the r
 6. `screenState`: the state shown when the feedback was created, such as default, empty, loading, error, success, disabled, hover, focus, or validation.
 
 Bounds are review evidence, not identity. When the edit targets a screen or section rather than one element, use the nearest stable parent target. Do not create targets from layout position, color, or order.
+
+## Fast initial mapping
+
+The slow part of UI Edit Mode is usually the first mapping pass: finding which visible regions are reviewable, naming them, and reconnecting comments to the right component or spec section. GIQO should avoid repeating that work.
+
+Use this first-run strategy:
+
+1. Prefer an existing `.giqo/ui-review/<screen>/targets.json` before scanning the UI again.
+2. If the file does not exist, extract the first target set from currently visible rendered DOM only.
+3. Save a target manifest with each target's `id`, `scope`, editable affordances, short visible text, and approximate bounds.
+4. Map hidden, collapsed, offscreen, modal-only, hover-only, focus-only, and error-state targets lazily when the user navigates to them or explicitly requests that state.
+5. On the next run, diff the manifest against current visible `data-gqo-id` values instead of rediscovering the full screen.
+6. Only remap targets whose ids disappeared, whose nearest parent changed, whose text/scope materially changed, or whose state becomes newly visible.
+
+The target manifest is a speed cache, not the source of truth. The source of truth remains `06_UI_UX_SPEC.md`, generated review HTML, and the current project files in brownfield mode.
+
+Recommended manifest path:
+
+```text
+.giqo/ui-review/<screen>/targets.json
+```
+
+Recommended target record:
+
+```json
+{
+  "id": "home.hero.primary-cta",
+  "label": "home.hero.primary-cta",
+  "scope": "element",
+  "editable": "copy style",
+  "text": "Generate design package",
+  "bounds": { "x": 120, "y": 420, "width": 220, "height": 48 }
+}
+```
+
+This reduces initial setup time because reviewers mostly comment on what they can see. The agent can start from the visible target manifest, then inspect only changed, unknown, or newly visible targets.
 
 ## Scope levels
 
@@ -121,35 +157,33 @@ An edit request should include target, scope, requested change, reason, and stat
 
 Use these statuses when ingesting browser feedback:
 
-1. Proposed: captured from the reviewer and not yet evaluated.
-2. Accepted: approved for docs and artifact updates.
-3. Applied: reflected in `06_UI_UX_SPEC.md` and any regenerated review artifact.
-4. Deferred: valid, but outside the current version or delivery slice.
-5. Rejected: not accepted, with a short reason.
-6. Needs question: blocked by an owner decision.
+1. `saved`: captured from the reviewer and ready to inspect.
+2. `running`: implementation or document update work has started.
+3. `applied`: reflected in `06_UI_UX_SPEC.md`, regenerated review artifacts, or source after an apply step.
+4. `failed`: blocked, rejected, obsolete, or not actionable; record a short reason.
 
-Only accepted edits can become applied edits. Applied means the actual screen has changed in the authoritative docs, not only in exported browser feedback.
+Applied means the actual screen definition has changed in the authoritative docs, regenerated review artifact, or implementation files after an apply step, not only in browser feedback.
 
 ## Apply boundaries
 
 ### v1 boundary
 
-Version 1 is saved-request and export first.
+Version 1 is saved-request first.
 
-The browser artifact may capture edit requests, save them for work, show their status, and export them for GIQO ingestion. Applying a request in v1 means preparing it for later document processing, not changing project files.
+The browser artifact may capture edit requests, save them under `.giqo/ui-review/<screen>/`, and show their status. Saving a request in v1 means preparing it for later document processing, not changing project files.
 
-After export, GIQO may ingest edit requests and update:
+After save, GIQO may ingest edit requests and update:
 
 1. `06_UI_UX_SPEC.md`
 2. `05_IMPLEMENTATION_PLAN.md`
-3. `09_RISK_AND_DECISIONS.md` when a request is deferred, rejected, or blocked
+3. `09_RISK_AND_DECISIONS.md` when a request is failed or unresolved
 4. regenerated `wireframe.html` or `mockup.html` when the workflow creates a fresh review artifact
 
 Version 1 must not directly patch application source code. It must not treat browser edits as live DOM mutations that persist to project files. It must not claim an edit is applied to the actual screen until GIQO has ingested the saved requests and updated the authoritative docs or regenerated review artifact.
 
 ### v2 boundary
 
-Version 2 may add a session bridge between exported edit requests and an implementation agent when the project has enough structure to do so safely.
+Version 2 may add a session bridge between saved edit requests and an implementation agent when the project has enough structure to do so safely.
 
 Allowed v2 behavior:
 
@@ -170,6 +204,6 @@ When GIQO receives edit requests, it should:
 3. keep conflicting requests separate and mark them needs question
 4. promote element edits to screen or global scope when the change clearly affects a pattern
 5. update the UI spec before the implementation plan
-6. record deferred, rejected, and blocked items in risks and decisions
+6. record failed items in risks and decisions
 
 The final handoff must say which requested edits were applied, which were not, and where the actual screen definition now lives.

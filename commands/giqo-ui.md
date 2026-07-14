@@ -21,13 +21,13 @@ Create or update UI planning docs and browser review artifacts.
 1. `06_UI_UX_SPEC.md`, if present.
 2. Visual inputs and screenshots.
 3. UI files in brownfield mode when needed for planning.
-4. `ui-review/comments.json`, when provided.
+4. `.giqo/ui-review/<screen>/comments.json`, when present.
 
 ## Writes
 
 1. `06_UI_UX_SPEC.md` when UI decisions change.
 2. `ui-review/` artifacts based on `templates/visual-review/`.
-3. `.giqo/runs/<run-id>/ingest/` for imported comments.
+3. `.giqo/ui-review/<screen>/` for browser-saved review state.
 
 It must not edit application source.
 

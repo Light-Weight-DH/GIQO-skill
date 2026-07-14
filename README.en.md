@@ -40,7 +40,7 @@ ui-review/
 └── review-export.md
 ```
 
-The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element, add comments or edit requests, and store feedback in the browser. A later GIQO run can ingest that saved feedback and update `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, and unresolved-risk notes.
+The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element or choose it from the Target list, then add comments or edit requests. When opened with the local launcher, feedback is saved automatically under `.giqo/ui-review/<screen>/`. A later GIQO run can ingest that saved feedback and update `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, and unresolved-risk notes.
 
 Open the review screen with the bundled launcher:
 
@@ -62,7 +62,7 @@ node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
 node scripts/open-visual-review.mjs --no-open
 ```
 
-Saved browser edit requests become work items GIQO can read in the next step. The browser artifact does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or ask naturally to apply the saved UI requests.
+Saved browser edit requests become work items in `.giqo/ui-review/<screen>/change-requests.json` for GIQO to read in the next step. Currently visible reviewable targets are also saved in `targets.json` so later runs can skip most initial UI mapping. Hidden or offscreen states are lazy-mapped only when the reviewer opens or requests them. The browser artifact does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or ask naturally to apply the saved UI requests.
 
 ## Existing projects and commands
 
@@ -85,6 +85,54 @@ GIQO is written as a platform-neutral skill. Use the same repository from:
 - OpenCode
 - Any agent that can read `SKILL.md` and the `references/` directory
 
+## Installation and setup
+
+GIQO is not a package that needs a build step. It is a **skill folder** for an agent to read. Installation means placing this repository somewhere the agent can access and keeping `SKILL.md`, `commands/`, `references/`, and `templates/` together.
+
+### 1. Clone the repository
+
+```bash
+git clone <repo-url> GIQO-skill
+cd GIQO-skill
+```
+
+### 2. Connect it to your agent
+
+Use the option that matches your environment.
+
+| Environment | Recommended setup |
+|---|---|
+| Claude / Claude Code | Register `GIQO-skill/` as a skill directory, or make the session read this folder's `SKILL.md`. |
+| Codex | Place it next to the target repo or in a shared skills folder, then have the session use `GIQO-skill/SKILL.md` as the guiding instruction. |
+| OpenCode | Put this folder on the skills path, or open this repository in the session and run GIQO requests from there. |
+| Other agents | Read `SKILL.md` as the entry instruction and keep `references/`, `commands/`, and `templates/` available by relative path. |
+
+### 3. Use it in a project
+
+In a new or existing project, ask naturally:
+
+```text
+Use GIQO to analyze this project's inputs and create only the design docs needed for implementation.
+```
+
+For existing projects, GIQO uses `.giqo/` as its default workspace for inputs and run outputs. It does not modify application source files until an explicit apply step.
+
+### 4. Prepare visual review
+
+To open the Visual Review screen directly, Node.js is required. No package install is needed for the bundled launcher.
+
+```bash
+node scripts/open-visual-review.mjs templates/visual-review/mockup.html
+```
+
+To apply saved UI edit requests, ask naturally:
+
+```text
+Check any saved UI edit requests and apply the actionable ones.
+```
+
+If no saved requests or required documents exist, GIQO reports the current state and stops.
+
 ## Suggested invocation
 
 ```text
@@ -95,7 +143,7 @@ If something is unclear, ask the minimum questions; if I skip, make reasonable a
 For visual review feedback:
 
 ```text
-Read ui-review/comments.json and update the UI/UX spec and implementation plan.
+Read the UI review feedback saved under .giqo and update the UI/UX spec and implementation plan.
 ```
 
 ## Repository layout

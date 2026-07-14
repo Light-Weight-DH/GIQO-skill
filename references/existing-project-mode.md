@@ -32,7 +32,7 @@ Recommended layout:
 | `sourcePolicy` | What inputs are authoritative |
 | `applyPolicy` | Whether GIQO may write files or only propose changes |
 
-`inputs/` stores user supplied material. `runs/` stores each analysis pass. `ui-review/` stores generated review assets and exported comments when the project uses commentable UI review.
+`inputs/` stores user supplied material. `runs/` stores each analysis pass. `ui-review/` stores generated review assets and saved review state when the project uses commentable UI review.
 
 Do not hide decisions in `.giqo` only. Anything an implementer needs must also appear in the selected docs, usually `00_INDEX.md`, `02_ASSUMPTIONS.md`, `05_IMPLEMENTATION_PLAN.md`, or `09_RISK_AND_DECISIONS.md`.
 

@@ -13,6 +13,8 @@ Each edit has two states:
 
 The proposed edit is never treated as applied just because it was written in the browser. GIQO must ingest the request, decide whether it belongs in scope, update the design docs, then regenerate or revise the screen artifact.
 
+When `--actual` is provided, UI Edit Mode uses an iframe live shell. The running app is shown through the local launcher's same-origin proxy, while the GIQO toolbar, overlays, and panels stay outside the iframe. Do not inject `review.css`, pins, toolbar markup, or layout helpers into the actual app DOM.
+
 ## Editable units
 
 Use stable semantic targets, not visual coordinates.
@@ -183,7 +185,7 @@ After save, GIQO may ingest edit requests and update:
 
 Version 1 must not directly patch application source code. It must not treat browser edits as live DOM mutations that persist to project files. It must not claim an edit is applied to the actual screen until GIQO has ingested the saved requests and updated the authoritative docs or regenerated review artifact.
 
-The `--actual` URL is a reference link in v1, not a guaranteed live DOM overlay. A true "comment directly on the running app" mode requires the app to expose stable `data-gqo-id` values to the review layer and must satisfy browser same-origin/security constraints or use an agent/browser bridge. Until that bridge exists, the review artifact is the commentable surface and the actual screen is used for comparison.
+The `--actual` URL opens an isolated live shell in v1. The launcher proxies the actual screen into a same-origin iframe so the shell can read visible `data-gqo-id` targets, but GIQO controls remain outside the app DOM and saved requests still do not mutate source files. If the app blocks iframe/proxy loading or does not expose stable `data-gqo-id` values, fall back to the generated review artifact and use the actual screen for comparison.
 
 ### v2 boundary
 

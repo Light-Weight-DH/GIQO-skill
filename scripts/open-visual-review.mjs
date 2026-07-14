@@ -115,6 +115,41 @@ function safePath(root, requestUrl) {
   return fullPath;
 }
 
+function validateActualUrl(value) {
+  if (!value) {
+    return null;
+  }
+  const url = new URL(value);
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new Error("--actual must be an http or https URL.");
+  }
+  return url;
+}
+
+function actualTarget(actualUrl, requestUrl) {
+  const url = new URL(requestUrl, "http://localhost");
+  const pathname = url.pathname.replace(/^\/__gqo\/actual\/?/, "");
+  const target = new URL(pathname || actualUrl.pathname || "/", actualUrl.origin);
+  target.search = url.search || actualUrl.search;
+  return target;
+}
+
+function actualBasePath(actualUrl) {
+  if (actualUrl.pathname.endsWith("/")) {
+    return actualUrl.pathname;
+  }
+  const lastSlash = actualUrl.pathname.lastIndexOf("/");
+  return actualUrl.pathname.slice(0, lastSlash + 1) || "/";
+}
+
+function rewriteActualHtml(html, actualUrl) {
+  const base = `<base href="/__gqo/actual${actualBasePath(actualUrl)}">`;
+  const rewritten = html
+    .replaceAll(/(src|href|action)="\//g, '$1="/__gqo/actual/')
+    .replaceAll(/(src|href|action)='\//g, "$1='/__gqo/actual/");
+  return /<head[^>]*>/i.test(rewritten) ? rewritten.replace(/<head[^>]*>/i, (match) => `${match}${base}`) : `${base}${rewritten}`;
+}
+
 function stateDir(filePath) {
   const screen = basename(filePath, extname(filePath)) || "review";
   return resolve(process.cwd(), ".giqo", "ui-review", screen);
@@ -154,7 +189,7 @@ function json(response, status, body) {
   response.end(JSON.stringify(body));
 }
 
-function serve(root, dir) {
+function serve(root, dir, actualUrl) {
   return createServer((request, response) => {
     const url = new URL(request.url || "/", "http://localhost");
     if (url.pathname === "/__gqo/state" && request.method === "GET") {
@@ -171,6 +206,21 @@ function serve(root, dir) {
         .catch((error) => json(response, 400, { ok: false, error: String(error) }));
       return;
     }
+    if (actualUrl && url.pathname.startsWith("/__gqo/actual")) {
+      const target = actualTarget(actualUrl, request.url || "/");
+      fetch(target, { redirect: "follow" })
+        .then(async (actualResponse) => {
+          const type = actualResponse.headers.get("content-type") || "application/octet-stream";
+          response.writeHead(actualResponse.status, { "content-type": type, "cache-control": "no-store" });
+          if (type.includes("text/html")) {
+            response.end(rewriteActualHtml(await actualResponse.text(), actualUrl));
+            return;
+          }
+          response.end(Buffer.from(await actualResponse.arrayBuffer()));
+        })
+        .catch((error) => json(response, 502, { ok: false, error: String(error) }));
+      return;
+    }
     const filePath = safePath(root, request.url || "/");
     if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) {
       response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
@@ -184,19 +234,25 @@ function serve(root, dir) {
 
 function main() {
   const options = parseArgs(process.argv.slice(2));
-  const filePath = isAbsolute(options.file) ? options.file : resolve(process.cwd(), options.file);
+  const actualUrl = validateActualUrl(options.actual);
+  const reviewFilePath = isAbsolute(options.file) ? options.file : resolve(process.cwd(), options.file);
+  const liveShellPath = resolve(process.cwd(), "templates/visual-review/live-shell.html");
+  const filePath = actualUrl ? liveShellPath : reviewFilePath;
+  if (!existsSync(reviewFilePath) || !statSync(reviewFilePath).isFile()) {
+    throw new Error(`Review HTML file not found: ${reviewFilePath}`);
+  }
   if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-    throw new Error(`Review HTML file not found: ${filePath}`);
+    throw new Error(`Review shell file not found: ${filePath}`);
   }
   const root = resolve(filePath, "..");
-  const dir = stateDir(filePath);
+  const dir = stateDir(reviewFilePath);
   const fileName = filePath.split(sep).pop();
   const query = new URLSearchParams({ mode: options.mode });
-  if (options.actual) {
-    query.set("actual", options.actual);
+  if (actualUrl) {
+    query.set("actual", actualUrl.href);
   }
   const url = `http://${options.host}:${options.port}/${encodeURIComponent(fileName)}?${query.toString()}`;
-  const server = serve(root, dir);
+  const server = serve(root, dir, actualUrl);
 
   server.listen(options.port, options.host, () => {
     console.log(`GIQO Visual Review is running at ${url}`);

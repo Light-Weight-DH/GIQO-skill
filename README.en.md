@@ -64,7 +64,7 @@ node scripts/open-visual-review.mjs --no-open
 
 Saved browser edit requests become work items in `.giqo/ui-review/<screen>/change-requests.json` for GIQO to read in the next step. Currently visible reviewable targets are also saved in `targets.json` so later runs can skip most initial UI mapping. Hidden or offscreen states are lazy-mapped only when the reviewer opens or requests them. Status is not a reviewer-controlled selector; the agent updates it to `saved`, `running`, `applied`, or `failed` as work progresses. The browser artifact does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or ask naturally to apply the saved UI requests.
 
-The `--actual` URL is a comparison link in v1. Commenting directly on the running app requires a separate bridge that can see the app's stable `data-gqo-id` values and satisfy browser security constraints.
+The `--actual` URL opens an iframe live shell. GIQO toolbar, panel, overlay, and CSS stay outside the iframe, so the actual app DOM does not receive `review.css`, pins, toolbar markup, or layout helpers. When the launcher can proxy the actual page through the same-origin `/__gqo/actual/` route and the app exposes stable `data-gqo-id` values, reviewers can target visible actual-screen elements. If proxy/iframe loading is blocked or no stable targets are present, use the generated `wireframe.html` or `mockup.html` as the commentable surface and keep the actual screen as a comparison reference.
 
 ## Existing projects and commands
 

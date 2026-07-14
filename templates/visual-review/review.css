@@ -39,6 +39,51 @@ body {
   margin: 0;
 }
 
+body[data-gqo-live="true"] {
+  overflow: hidden;
+}
+
+.gqo-live-page {
+  position: fixed;
+  inset: var(--gqo-toolbar-offset) 0 0;
+  background: #0f172a;
+}
+
+.gqo-live-page iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: white;
+}
+
+#gqo-live-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  pointer-events: none;
+}
+
+.gqo-live-target {
+  position: fixed;
+  z-index: 19;
+  border: 2px solid var(--gqo-accent);
+  border-radius: 8px;
+  background: transparent;
+  cursor: crosshair;
+  pointer-events: auto;
+}
+
+.gqo-live-target:hover,
+.gqo-live-target:focus-visible {
+  background: color-mix(in srgb, var(--gqo-accent-soft) 36%, transparent);
+  outline: 3px solid var(--gqo-accent-soft);
+}
+
+body[data-gqo-live="true"] .gqo-comment-list,
+body[data-gqo-live="true"] .gqo-panel {
+  z-index: 30;
+}
+
 .gqo-page {
   max-width: var(--gqo-container);
   margin: 0 auto;

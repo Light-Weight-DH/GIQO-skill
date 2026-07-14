@@ -13,6 +13,18 @@ Visual Review Mode makes wireframes and mockups commentable in the browser.
 7. Reuse `.giqo/ui-review/<screen>/targets.json` to avoid remapping the same screen on every run.
 8. Discover visible targets first; map hidden or offscreen states lazily when they become relevant.
 
+## Actual screen live shell
+
+When launched with `--actual`, the local launcher opens `live-shell.html` instead of injecting review controls into the app page:
+
+```bash
+node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
+```
+
+The actual app is loaded inside an iframe through the launcher's same-origin `/__gqo/actual/` proxy. The GIQO toolbar, feedback panel, overlay boxes, and review CSS live in the outer shell, not in the app DOM. This keeps app-level CSS such as `:root`, `body`, layout, and `[data-gqo-id]` positioning untouched while still allowing the shell to read currently visible `data-gqo-id` targets.
+
+If the actual page cannot be proxied, does not expose stable `data-gqo-id` attributes, or depends on browser features that reject iframe/proxy loading, use the generated `wireframe.html` or `mockup.html` artifact as the commentable surface and keep the actual URL as a reference link.
+
 ## Element contract
 
 Every reviewable element must include:
@@ -41,4 +53,5 @@ When `.giqo/ui-review/<screen>/comments.json` or `change-requests.json` exists, 
 - Treat `targets.json` as a cache for speed, not as the source of truth.
 - Do not block initial review setup on hidden, collapsed, modal-only, or offscreen targets.
 - Treat request status as read-only in the browser. Agents update status as work moves from `saved` to `running`, `applied`, or `failed`.
-- Treat `--actual` as a comparison link in v1. Live commenting on the actual running app requires a separate same-origin or browser-bridge integration.
+- Treat `--actual` as an isolated live shell over a launcher-served same-origin iframe when proxying works. It still saves requests only; it does not mutate the actual app or its source files.
+- Fall back to artifact review when the actual app blocks iframe/proxy loading or lacks stable `data-gqo-id` targets.

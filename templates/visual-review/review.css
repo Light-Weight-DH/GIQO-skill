@@ -64,17 +64,16 @@ body[data-gqo-live="true"] {
 }
 
 .gqo-live-target {
+  box-sizing: border-box;
   position: fixed;
   z-index: 19;
   border: 2px solid var(--gqo-accent);
   border-radius: 8px;
   background: transparent;
-  cursor: crosshair;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
-.gqo-live-target:hover,
-.gqo-live-target:focus-visible {
+.gqo-live-target-selected {
   background: color-mix(in srgb, var(--gqo-accent-soft) 36%, transparent);
   outline: 3px solid var(--gqo-accent-soft);
 }

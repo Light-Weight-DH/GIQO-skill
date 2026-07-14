@@ -164,6 +164,8 @@ Use these statuses when ingesting browser feedback:
 
 Applied means the actual screen definition has changed in the authoritative docs, regenerated review artifact, or implementation files after an apply step, not only in browser feedback.
 
+Status is agent-owned. Reviewers can filter by status in the browser, but they must not manually change request status from the review panel. When an agent starts applying a request, it should first write `running` to `.giqo/ui-review/<screen>/state.json` or `change-requests.json`, then proceed with the work. The browser Refresh control reloads that saved state so reviewers can see progress.
+
 ## Apply boundaries
 
 ### v1 boundary
@@ -180,6 +182,8 @@ After save, GIQO may ingest edit requests and update:
 4. regenerated `wireframe.html` or `mockup.html` when the workflow creates a fresh review artifact
 
 Version 1 must not directly patch application source code. It must not treat browser edits as live DOM mutations that persist to project files. It must not claim an edit is applied to the actual screen until GIQO has ingested the saved requests and updated the authoritative docs or regenerated review artifact.
+
+The `--actual` URL is a reference link in v1, not a guaranteed live DOM overlay. A true "comment directly on the running app" mode requires the app to expose stable `data-gqo-id` values to the review layer and must satisfy browser same-origin/security constraints or use an agent/browser bridge. Until that bridge exists, the review artifact is the commentable surface and the actual screen is used for comparison.
 
 ### v2 boundary
 

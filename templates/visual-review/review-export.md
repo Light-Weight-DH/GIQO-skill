@@ -30,3 +30,5 @@ Requests use these statuses:
 - `failed` - blocked, rejected, or otherwise not applied; the reason must remain visible
 
 Unresolved `saved`, `running`, and `failed` items must remain visible in the handoff docs.
+
+Status is updated by the agent or apply workflow, not by reviewers in the browser. Use Refresh in the review screen to reload the latest saved status.

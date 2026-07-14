@@ -35,10 +35,12 @@ Apply approved GIQO outputs to the project.
 1. Confirm the active run and target outputs.
 2. Compare generated outputs with existing files.
 3. Refuse source edits unless the apply boundary is satisfied.
-4. Write approved docs and review assets.
-5. For allowed source edits, make only the named changes.
-6. Run the checks named in the plan when source edits occur.
-7. If the user asks to apply UI edits but no saved edit requests exist, stop with a state report instead of making speculative changes.
+4. When applying a saved UI edit request, update its status to `running` in `.giqo/ui-review/<screen>/` before modifying docs, artifacts, or source.
+5. Write approved docs and review assets.
+6. For allowed source edits, make only the named changes.
+7. Run the checks named in the plan when source edits occur.
+8. Mark each attempted UI request `applied` or `failed` after the work and preserve the reason for failures.
+9. If the user asks to apply UI edits but no saved edit requests exist, stop with a state report instead of making speculative changes.
 
 ## Completion report
 

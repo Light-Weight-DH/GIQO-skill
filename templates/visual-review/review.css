@@ -83,7 +83,9 @@ body {
 .gqo-panel button,
 .gqo-toolbar select,
 .gqo-panel select,
-.gqo-list-item select {
+.gqo-list-item select,
+.gqo-comment-list button,
+.gqo-status {
   border: 1px solid var(--gqo-line);
   border-radius: var(--gqo-radius-sm);
   padding: var(--gqo-space-2) var(--gqo-space-3);
@@ -94,7 +96,8 @@ body {
 
 .gqo-toolbar select,
 .gqo-toolbar button,
-.gqo-panel button {
+.gqo-panel button,
+.gqo-comment-list button {
   cursor: pointer;
 }
 
@@ -129,6 +132,7 @@ body {
 
 .gqo-toolbar button:focus-visible,
 .gqo-panel button:focus-visible,
+.gqo-comment-list button:focus-visible,
 .gqo-toolbar select:focus-visible,
 .gqo-panel select:focus-visible,
 .gqo-panel textarea:focus-visible,
@@ -177,6 +181,46 @@ body {
   border-radius: var(--gqo-radius-md);
   background: var(--gqo-surface);
   box-shadow: 0 24px 80px var(--gqo-shadow);
+}
+
+body[data-gqo-feedback-collapsed="true"] .gqo-comment-list {
+  width: auto;
+  max-width: calc(100vw - 48px);
+}
+
+body[data-gqo-feedback-collapsed="true"] #gqo-comments {
+  display: none;
+}
+
+.gqo-comment-list-header {
+  display: flex;
+  gap: var(--gqo-space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gqo-status {
+  width: fit-content;
+  padding: 4px 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: default;
+}
+
+.gqo-status-saved {
+  background: #e0f2fe;
+}
+
+.gqo-status-running {
+  background: #fef3c7;
+}
+
+.gqo-status-applied {
+  background: #dcfce7;
+}
+
+.gqo-status-failed {
+  background: #fee2e2;
 }
 
 .gqo-panel {

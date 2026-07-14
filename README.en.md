@@ -62,7 +62,9 @@ node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
 node scripts/open-visual-review.mjs --no-open
 ```
 
-Saved browser edit requests become work items in `.giqo/ui-review/<screen>/change-requests.json` for GIQO to read in the next step. Currently visible reviewable targets are also saved in `targets.json` so later runs can skip most initial UI mapping. Hidden or offscreen states are lazy-mapped only when the reviewer opens or requests them. The browser artifact does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or ask naturally to apply the saved UI requests.
+Saved browser edit requests become work items in `.giqo/ui-review/<screen>/change-requests.json` for GIQO to read in the next step. Currently visible reviewable targets are also saved in `targets.json` so later runs can skip most initial UI mapping. Hidden or offscreen states are lazy-mapped only when the reviewer opens or requests them. Status is not a reviewer-controlled selector; the agent updates it to `saved`, `running`, `applied`, or `failed` as work progresses. The browser artifact does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or ask naturally to apply the saved UI requests.
+
+The `--actual` URL is a comparison link in v1. Commenting directly on the running app requires a separate bridge that can see the app's stable `data-gqo-id` values and satisfy browser security constraints.
 
 ## Existing projects and commands
 

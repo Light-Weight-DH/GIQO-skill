@@ -66,7 +66,9 @@ node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
 node scripts/open-visual-review.mjs --no-open
 ```
 
-브라우저에서 저장한 수정 요청은 GIQO가 다음 단계에서 읽을 수 있는 작업 항목으로 `.giqo/ui-review/<screen>/change-requests.json`에 보관됩니다. 동시에 현재 보이는 reviewable 요소 목록은 `targets.json`에 저장되어 다음 실행 때 초기 UI 매핑 시간을 줄입니다. 숨겨진 요소나 화면 밖 상태는 처음부터 전부 파악하지 않고, 사용자가 해당 상태를 열거나 요청할 때 lazy mapping합니다. 브라우저 화면 자체는 실제 소스 코드를 직접 수정하지 않으며, 실제 반영은 `/giqo-apply` 또는 자연어로 “저장된 UI 수정 요청 진행해줘”라고 요청했을 때 수행합니다.
+브라우저에서 저장한 수정 요청은 GIQO가 다음 단계에서 읽을 수 있는 작업 항목으로 `.giqo/ui-review/<screen>/change-requests.json`에 보관됩니다. 동시에 현재 보이는 reviewable 요소 목록은 `targets.json`에 저장되어 다음 실행 때 초기 UI 매핑 시간을 줄입니다. 숨겨진 요소나 화면 밖 상태는 처음부터 전부 파악하지 않고, 사용자가 해당 상태를 열거나 요청할 때 lazy mapping합니다. 상태는 사용자가 직접 바꾸는 선택지가 아니라 agent가 작업 진행에 따라 `saved`, `running`, `applied`, `failed`로 갱신하는 값입니다. 브라우저 화면 자체는 실제 소스 코드를 직접 수정하지 않으며, 실제 반영은 `/giqo-apply` 또는 자연어로 “저장된 UI 수정 요청 진행해줘”라고 요청했을 때 수행합니다.
+
+`--actual`로 연결한 실제 화면은 v1에서 비교용 링크입니다. 실제 실행 중인 앱 위에 직접 코멘트를 다는 모드는 앱의 `data-gqo-id` 노출과 브라우저 보안 제약을 해결하는 별도 bridge가 필요합니다.
 
 ## 기존 프로젝트와 명령
 

@@ -3,7 +3,7 @@
   const statuses = ["saved", "running", "applied", "failed"];
   const statusLabels = { saved: "Saved", running: "In progress", applied: "Applied", failed: "Failed" };
   const key = `gqo-comments:${location.pathname}`;
-  const state = { targetId: "", mode: params.get("mode") === "edit" ? "edit" : "comment", filter: "all", items: load() };
+  const state = { targetId: "", mode: params.get("mode") === "edit" ? "edit" : "comment", filter: "all", collapsed: false, items: load() };
 
   function byId(id) { return document.getElementById(id); }
   function page() { return location.pathname.split("/").pop() || "review.html"; }
@@ -39,6 +39,12 @@
       element.append(option);
     }
     return element;
+  }
+  function statusBadge(value) {
+    const badge = document.createElement("span");
+    badge.className = `gqo-status gqo-status-${status(value)}`;
+    badge.textContent = statusLabels[status(value)] || status(value);
+    return badge;
   }
   function visible(element) {
     const rect = element.getBoundingClientRect();
@@ -116,7 +122,7 @@
     fetch("/__gqo/save", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(syncPayload()) }).catch(() => {});
   }
   function refreshWorkspace() {
-    fetch("/__gqo/state").then((response) => response.ok ? response.json() : {}).then((payload) => {
+    fetch(`/__gqo/state?t=${Date.now()}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : {}).then((payload) => {
       if (Array.isArray(payload.comments)) {
         state.items = normalizeItems(payload.comments);
         writeStorage();
@@ -128,7 +134,7 @@
     const toolbar = document.createElement("div");
     toolbar.className = "gqo-toolbar";
     const actual = actualUrl();
-    toolbar.innerHTML = `<div class="gqo-toolbar-title"><strong>GIQO Visual Review</strong>${actual ? ` <a href="${attr(actual)}" target="_blank" rel="noreferrer">Actual screen</a>` : ""}<span id="gqo-sync">Auto-save ready</span></div><div class="gqo-toolbar-controls"><label>Mode <select id="gqo-mode"><option value="comment">Comment</option><option value="edit">Edit request</option></select></label><label>Status <select id="gqo-filter"><option value="all">All</option></select></label><label>Target <span id="gqo-target-slot"></span></label><button id="gqo-refresh" type="button">Refresh</button><button id="gqo-clear" type="button">Clear</button></div>`;
+    toolbar.innerHTML = `<div class="gqo-toolbar-title"><strong>GIQO Visual Review</strong>${actual ? ` <a href="${attr(actual)}" target="_blank" rel="noreferrer">Actual screen</a>` : ""}<span id="gqo-sync">Auto-save ready</span></div><div class="gqo-toolbar-controls"><label>Mode <select id="gqo-mode"><option value="comment">Comment</option><option value="edit">Edit request</option></select></label><label>Status <select id="gqo-filter"><option value="all">All</option></select></label><label>Target <span id="gqo-target-slot"></span></label><button id="gqo-refresh" type="button">Refresh</button><button id="gqo-toggle" type="button" aria-expanded="true">Hide feedback</button><button id="gqo-clear" type="button">Clear</button></div>`;
     document.body.prepend(toolbar);
     for (const status of statuses) byId("gqo-filter").append(new Option(statusLabels[status] || status, status));
     byId("gqo-target-slot").append(targetSelect());
@@ -139,7 +145,7 @@
     document.body.append(panel);
     const list = document.createElement("aside");
     list.className = "gqo-comment-list";
-    list.innerHTML = `<strong>Saved feedback</strong><div id="gqo-comments"></div>`;
+    list.innerHTML = `<div class="gqo-comment-list-header"><strong>Saved feedback</strong><button id="gqo-list-toggle" type="button" aria-expanded="true">Minimize</button></div><div id="gqo-comments"></div>`;
     document.body.append(list);
     return panel;
   }
@@ -191,13 +197,19 @@
       title.textContent = `${item.targetId} · ${item.type}`;
       const body = document.createElement("p");
       body.textContent = item.comment;
-      const picker = select(item.status);
-      picker.dataset.gqoStatus = item.id;
-      card.append(title, body, picker);
+      card.append(title, body, statusBadge(item.status));
       box.append(card);
     }
   }
-  function render() { renderPins(); renderList(); }
+  function render() { renderPins(); renderList(); document.body.dataset.gqoFeedbackCollapsed = state.collapsed ? "true" : "false"; }
+  function setCollapsed(collapsed) {
+    state.collapsed = collapsed;
+    byId("gqo-toggle").textContent = collapsed ? "Show feedback" : "Hide feedback";
+    byId("gqo-toggle").setAttribute("aria-expanded", String(!collapsed));
+    byId("gqo-list-toggle").textContent = collapsed ? "Show" : "Minimize";
+    byId("gqo-list-toggle").setAttribute("aria-expanded", String(!collapsed));
+    render();
+  }
   function wire(panel) {
     document.querySelectorAll("[data-gqo-id]").forEach((element) => {
       element.addEventListener("mouseenter", () => element.classList.add("gqo-highlight"));
@@ -213,8 +225,9 @@
     byId("gqo-mode").addEventListener("change", (event) => { state.mode = event.target.value; document.body.dataset.gqoMode = state.mode; });
     byId("gqo-filter").addEventListener("change", (event) => { state.filter = event.target.value; renderList(); });
     byId("gqo-target").addEventListener("change", (event) => openPanel(panel, event.target.value));
-    byId("gqo-comments").addEventListener("change", (event) => { const item = state.items.find((entry) => entry.id === event.target.dataset.gqoStatus); if (item) { item.status = event.target.value; syncWorkspace(); render(); } });
     byId("gqo-refresh").addEventListener("click", refreshWorkspace);
+    byId("gqo-toggle").addEventListener("click", () => setCollapsed(!state.collapsed));
+    byId("gqo-list-toggle").addEventListener("click", () => setCollapsed(!state.collapsed));
     byId("gqo-cancel").addEventListener("click", () => { panel.hidden = true; });
     byId("gqo-save").addEventListener("click", () => savePanel(panel));
     byId("gqo-clear").addEventListener("click", () => { state.items = []; state.filter = "all"; byId("gqo-filter").value = "all"; syncWorkspace(); render(); });

@@ -159,7 +159,7 @@ function serve(root, dir) {
     const url = new URL(request.url || "/", "http://localhost");
     if (url.pathname === "/__gqo/state" && request.method === "GET") {
       readReviewState(dir).then((body) => {
-        response.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+        response.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
         response.end(body);
       }).catch((error) => json(response, 500, { ok: false, error: String(error) }));
       return;

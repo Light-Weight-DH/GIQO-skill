@@ -1,180 +1,195 @@
 # GIQO Skill
 
-<p align="right">
-  <a href="README.en.md"><strong>Read in English</strong></a>
+<p align="center">
+  <strong>Garbage In, Quality Out</strong><br>
+  정리되지 않은 요구사항, 이미지, 레퍼런스, 기존 프로젝트를 실제 구현 가능한 설계 문서와 작업 계획으로 바꾸는 agent skill입니다.
 </p>
 
-**GIQO**는 **Garbage In, Quality Out**의 줄임말입니다. 정리되지 않은 요구사항, 이미지, 레퍼런스, 기존 프로젝트 파일을 바탕으로 실제 구현에 쓸 수 있는 설계 문서와 작업 계획을 만드는 스킬입니다.
+<p align="center">
+  <a href="README.en.md"><img alt="Docs: English" src="https://img.shields.io/badge/docs-English-blue"></a>
+  <img alt="Platform: Agent Skill" src="https://img.shields.io/badge/platform-Agent%20Skill-4f46e5">
+  <img alt="Visual Review" src="https://img.shields.io/badge/visual%20review-live%20UI-16a34a">
+  <img alt="No build required" src="https://img.shields.io/badge/build-not%20required-64748b">
+</p>
 
-사용자는 자료를 완벽하게 정리할 필요가 없습니다. 폴더에 대강 올려둔 문서, 스크린샷, 메모, 기존 코드, 리뷰 코멘트를 GIQO가 읽고 분류한 뒤, 필요한 질문만 하고, 사용자가 스킵하면 합리적인 가정을 기록하며, 프로젝트에 필요한 문서만 생성합니다.
+<p align="center">
+  <a href="#핵심-워크플로우">핵심 워크플로우</a> ·
+  <a href="#실제-사용-흐름">실제 사용 흐름</a> ·
+  <a href="#visual-review-mode">Visual Review</a> ·
+  <a href="#skill-명령어와-ui에서-보이는-것">Skill 명령어</a> ·
+  <a href="docs/visual-review.md">Visual Review 상세</a>
+</p>
 
-## GIQO가 만드는 것
+## 무엇을 해주나
 
-GIQO는 가능한 모든 문서를 무조건 만들지 않습니다. 입력 자료와 프로젝트 성격을 보고 필요한 산출물만 선택합니다.
+GIQO는 사용자가 완성된 기획서를 준비하지 않아도, 대강 모아둔 자료에서 구현에 필요한 문서만 골라 만듭니다.
 
-- `00_INDEX.md` - 생성된 설계 패키지의 길잡이 문서
-- `01_REQUIREMENTS.md` - 요구사항, 제약, 수용 기준 정리
-- `02_ASSUMPTIONS.md` - 자료가 부족할 때 세운 가정 기록
-- `03_PRODUCT_SPEC.md` - 사용자 목표, 범위, 워크플로우, 비목표
-- `04_ARCHITECTURE.md` - 시스템 구조, 모듈, 데이터 흐름, 연동 지점
-- `05_IMPLEMENTATION_PLAN.md` - 구현 에이전트가 바로 따라갈 작업 계획
-- `06_UI_UX_SPEC.md` - UI 구조, 상태, 접근성, 와이어프레임/목업 메모
-- `07_DATA_MODEL.md` - 엔티티, 관계, ERD, 저장소 관련 메모
-- `08_API_SPEC.md` - API, 명령, 외부 계약, 오류 모델
-- `09_RISK_AND_DECISIONS.md` - 리스크, 결정 사항, 미해결 이슈
+- 요구사항, 제약, 수용 기준 정리
+- 부족한 정보에 대한 가정 기록
+- 제품 흐름, UI/UX, 데이터 모델, API, 아키텍처 정리
+- 구현 에이전트가 바로 따라갈 작업 계획 생성
+- UI 화면에서 직접 target을 선택해 수정 요청 저장
 
-필요할 때는 Mermaid 다이어그램도 생성합니다.
+모든 문서를 무조건 만들지 않습니다. 프로젝트 성격과 입력 자료를 보고 필요한 문서만 선택합니다.
 
-- ERD
-- Flowchart
-- Sequence Diagram
-- Gantt Chart
+## 핵심 워크플로우
+
+```text
+rough inputs / existing repo / screenshots / review notes
+→ GIQO가 입력을 분류하고 필요한 질문만 선별
+→ 필요한 문서만 생성 또는 갱신
+→ Visual Review로 UI target에 수정 요청 저장
+→ 저장된 요청을 ingest/apply 단계에서 문서와 실제 작업에 반영
+```
+
+대표 산출물은 다음 중 필요한 것만 생성됩니다.
+
+| 문서 | 역할 |
+|---|---|
+| `00_INDEX.md` | 생성된 설계 패키지의 길잡이 |
+| `01_REQUIREMENTS.md` | 요구사항, 제약, 수용 기준 |
+| `02_ASSUMPTIONS.md` | 부족한 자료를 보완한 가정 |
+| `03_PRODUCT_SPEC.md` | 사용자 목표, 범위, 워크플로우 |
+| `04_ARCHITECTURE.md` | 시스템 구조와 연동 지점 |
+| `05_IMPLEMENTATION_PLAN.md` | 구현 순서와 검증 기준 |
+| `06_UI_UX_SPEC.md` | 화면 구조, 상태, 접근성, UI 결정 |
+| `07_DATA_MODEL.md` | 엔티티, 관계, 저장소 메모 |
+| `08_API_SPEC.md` | API, 명령, 외부 계약 |
+| `09_RISK_AND_DECISIONS.md` | 리스크, 결정 사항, 미해결 이슈 |
+
+## 실제 사용 흐름
+
+### 기존 프로젝트에서 바로 시작
+
+사용자는 작업 중인 프로젝트 루트에서 자연어로 요청합니다.
+
+```text
+/giqo 이 디렉토리의 기존 프로젝트를 바탕으로, 현재 구조를 유지하면서 구현 가능한 설계 문서와 작업 계획을 만들어줘.
+```
+
+GIQO는 먼저 레포 구조, 기존 코드, 문서, `.giqo/` 상태를 읽고 필요한 경우 짧게 확인합니다.
+
+```text
+확인할 사항:
+1. 이번 계획은 MVP 범위로 잡을까요, 전체 리뉴얼 범위로 잡을까요?
+2. 기존 API/DB 구조는 유지하는 전제로 볼까요?
+```
+
+사용자가 답하거나 “알아서 가정해줘”라고 하면, GIQO는 필요한 문서만 만들고 `05_IMPLEMENTATION_PLAN.md`에 다음 작업 순서를 남깁니다.
+
+### 레퍼런스나 자료가 있을 때
+
+스크린샷, 경쟁 서비스 링크, 기획 메모, 회의록, 기존 문서를 넣어둔 뒤 요청합니다.
+
+```text
+/giqo ./input 자료랑 현재 프로젝트를 같이 보고, UI/UX 명세와 구현 계획을 업데이트해줘.
+```
+
+GIQO는 자료를 신뢰도와 관련도별로 분류하고, 충돌하는 내용은 assumptions나 risks에 남깁니다. UI가 중요하면 Visual Review 화면도 만들거나 갱신합니다.
+
+### 생짜 아이디어만 있을 때
+
+아직 프로젝트나 자료가 거의 없어도 시작할 수 있습니다.
+
+```text
+/giqo 대략 이런 서비스를 만들고 싶어: 팀원이 올린 요구사항과 스크린샷을 분석해서 바로 구현 가능한 문서로 정리해주는 도구.
+불명확한 건 최소한만 물어보고, 스킵하면 합리적으로 가정해줘.
+```
+
+GIQO는 먼저 범위, 사용자, 핵심 플로우를 좁히고, 필요한 문서 세트를 선택합니다. 자료가 부족한 부분은 `02_ASSUMPTIONS.md`에 이유와 함께 기록합니다.
+
+### 저장된 UI 수정 요청을 적용할 때
+
+Visual Review에서 요청을 저장한 뒤에는 이렇게 말합니다.
+
+```text
+/giqo .giqo에 저장된 UI 수정 요청 확인하고 적용 가능한 작업 진행해줘.
+```
+
+GIQO는 저장된 요청을 읽고 `saved → running → applied/failed` 흐름으로 상태를 갱신하면서 문서나 실제 UI 작업에 반영합니다.
 
 ## Visual Review Mode
 
-UI가 중요한 프로젝트에서는 브라우저에서 열 수 있는 리뷰 화면을 생성할 수 있습니다.
+Visual Review는 UI 작업 중 실제 화면이나 생성된 목업에서 컴포넌트/영역을 선택하고, Claude Design처럼 해당 target에 수정 요청을 남기게 해주는 모드입니다.
+
+![GIQO Visual Review demo](git-readme/GIQO_UI_view_3.gif)
+
+사용자는 Node 명령을 직접 외울 필요 없이 프롬프트로 요청합니다.
 
 ```text
-ui-review/
-├── wireframe.html
-├── mockup.html
-├── review.css
-├── review.js
-├── comments.schema.json
-└── review-export.md
+/giqo 현재 화면 기준으로 UI 수정 모드 열어줘.
 ```
 
-생성된 HTML은 안정적인 `data-gqo-id`를 사용합니다. 사용자는 화면 요소를 클릭하거나 Target 목록에서 선택해 코멘트나 수정 요청을 남길 수 있습니다. 로컬 런처로 열면 피드백은 `.giqo/ui-review/<screen>/`에 자동 저장되고, 이후 GIQO는 저장된 피드백을 읽어 `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, 미해결 리스크 문서를 갱신합니다.
-
-리뷰 화면 실행:
-
-```bash
-node scripts/open-visual-review.mjs templates/visual-review/mockup.html
+```text
+/giqo http://localhost:3000 화면을 Visual Review로 열고, 저장된 수정 요청을 받을 수 있게 해줘.
 ```
 
-수정 요청 모드로 열고 실제 앱 화면을 연결:
+화면에서 보이는 핵심 컨트롤:
 
-```bash
-node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
+- `Status`: 저장된 요청을 `saved`, `running`, `applied`, `failed`로 필터링합니다.
+- `Target`: 수정 요청을 붙일 UI 대상입니다.
+- `Refresh`: agent가 갱신한 저장 상태를 다시 불러옵니다.
+- `Hide feedback` / `Show feedback`: 저장된 요청 패널을 접거나 펼칩니다.
+- 저장된 요청 카드의 `Edit` / `Delete`: 이미 저장한 요청을 수정하거나 삭제합니다.
+
+브라우저는 소스 코드를 직접 바꾸지 않습니다. 저장된 요청을 실제로 반영하려면 다시 agent에게 요청합니다.
+
+```text
+/giqo 방금 저장한 UI 수정 요청 적용해줘.
 ```
 
-기타 예시:
+간단한 용어:
 
-```bash
-node scripts/open-visual-review.mjs templates/visual-review/wireframe.html
-node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
-node scripts/open-visual-review.mjs --no-open
-```
+| 용어 | 의미 |
+|---|---|
+| Target | 수정 요청이 붙는 안정적인 UI ID. 예: `home.hero.primary-cta` |
+| `saved` | 저장됨, 아직 처리 전 |
+| `running` | agent가 처리 중 |
+| `applied` | 문서, 아티팩트, 또는 소스에 반영됨 |
+| `failed` | 적용 불가, 보류, 거절, 실패 |
 
-브라우저에서 저장한 수정 요청은 GIQO가 다음 단계에서 읽을 수 있는 작업 항목으로 `.giqo/ui-review/<screen>/change-requests.json`에 보관됩니다. 동시에 현재 보이는 reviewable 요소 목록은 `targets.json`에 저장되어 다음 실행 때 초기 UI 매핑 시간을 줄입니다. 숨겨진 요소나 화면 밖 상태는 처음부터 전부 파악하지 않고, 사용자가 해당 상태를 열거나 요청할 때 lazy mapping합니다. 상태는 사용자가 직접 바꾸는 선택지가 아니라 agent가 작업 진행에 따라 `saved`, `running`, `applied`, `failed`로 갱신하는 값입니다. 브라우저 화면 자체는 실제 소스 코드를 직접 수정하지 않으며, 실제 반영은 `/giqo-apply` 또는 자연어로 “저장된 UI 수정 요청 진행해줘”라고 요청했을 때 수행합니다.
+상세한 저장 파일, iframe live shell, proxy, target mapping 방식은 [Visual Review 상세 문서](docs/visual-review.md)를 참고하세요.
 
-`--actual`로 연결한 실제 화면은 iframe live shell 안에 표시됩니다. GIQO 툴바, 패널, 오버레이, CSS는 iframe 바깥의 shell에만 적용되므로 실제 앱 DOM에는 `review.css`, pin, toolbar, layout helper가 주입되지 않습니다. 런처가 같은 origin 프록시(`/__gqo/actual/`)로 실제 화면을 열 수 있고 앱에 안정적인 `data-gqo-id`가 노출되어 있을 때는 실제 화면 위에서 대상 선택과 저장이 가능합니다. 프록시/iframe 로딩이 막히거나 `data-gqo-id`가 없으면 생성된 `wireframe.html` 또는 `mockup.html`을 코멘트 가능한 표면으로 사용하고 실제 화면은 비교용으로 둡니다.
+## Skill 명령어와 UI에서 보이는 것
 
-## 기존 프로젝트와 명령
+플랫폼에 따라 slash command 등록 방식은 다를 수 있지만, GIQO가 기대하는 표준 동작 단위는 아래와 같습니다.
 
-기존 레포에 적용할 때는 `.giqo/` 작업 공간을 사용합니다. 입력 자료, 실행 기록, UI 리뷰 산출물을 애플리케이션 소스와 분리해 보관하고, 명시적인 apply 단계 전에는 소스 파일을 건드리지 않는 것을 기본값으로 합니다.
-
-명령 명세는 `commands/`에 있습니다. 플랫폼마다 실제 등록 방식은 다를 수 있지만, GIQO가 제공하는 표준 동작 단위는 아래와 같습니다.
-
-| Command | 역할 | 주로 쓰는 상황 |
+| 명령 | 역할 | 사용자가 보는 결과 |
 |---|---|---|
-| `/giqo-init` | `.giqo/` 작업 공간을 만들거나 갱신 | 새 프로젝트 또는 기존 레포에 GIQO를 붙일 때 |
-| `/giqo-plan` | 입력 자료를 분석하고 필요한 설계 문서만 생성 | 요구사항/이미지/레퍼런스로 계획을 만들 때 |
-| `/giqo-ui` | UI 문서와 리뷰 가능한 화면을 생성/갱신 | 와이어프레임, 목업, UI 코멘트 화면이 필요할 때 |
-| `/giqo-apply` | 승인된 문서/리뷰 산출물/허용된 변경을 반영 | 저장된 UI 수정 요청이나 승인된 계획을 실제 작업으로 진행할 때 |
-| `/giqo-ingest` | 새 코멘트, 수정 요청, 추가 자료를 읽어 기존 계획에 반영 | 리뷰 이후 피드백을 다시 설계에 합칠 때 |
+| `/giqo-init` | `.giqo/` 작업 공간 생성/갱신 | 현재 프로젝트 상태와 저장 위치 안내 |
+| `/giqo-plan` | 입력 자료 분석 후 필요한 문서 생성 | 선택된 문서 목록, 질문, 가정, 작업 계획 |
+| `/giqo-ui` | UI 문서와 Visual Review 화면 생성/갱신 | 리뷰 가능한 화면 또는 실제 화면 연결 안내 |
+| `/giqo-ingest` | 저장된 코멘트/수정 요청/자료 반영 | 갱신된 문서와 남은 질문 |
+| `/giqo-apply` | 승인된 계획이나 저장된 UI 요청 적용 | 진행 상태와 적용/실패 결과 |
 
-명령을 정확히 입력하지 않아도 됩니다. 예를 들어 “UI 수정 모드 열어줘”, “이 코멘트 반영해서 계획 업데이트해줘”처럼 자연어로 요청해도 GIQO가 가장 가까운 command 흐름을 선택하도록 설계되어 있습니다.
+명령을 정확히 몰라도 됩니다. 자연어 요청이면 GIQO가 가까운 흐름으로 해석합니다.
 
-요청에 필요한 문서나 저장된 작업이 없으면 억지로 진행하지 않고 현재 상태를 알려줍니다. 예를 들어 “UI 수정 진행해줘”라고 했는데 저장된 수정 요청이 없다면 “현재 따로 저장된 UI 수정 요청이 없습니다”처럼 답합니다.
+실제 Visual Review 브라우저 UI에는 `Status`, `Target`, `Refresh`, `Hide/Show feedback`, 저장 요청의 `Edit/Delete`만 노출됩니다. 내부 저장 파일, iframe proxy, Node launcher 실행 방식은 사용자가 직접 다루지 않아도 됩니다.
 
-## 지원 플랫폼
+## 기존 프로젝트에서의 원칙
 
-- Claude / Claude Code
-- Codex
-- OpenCode
-- `SKILL.md`와 `references/`를 읽을 수 있는 에이전트 환경
+- `.giqo/`를 작업 공간으로 사용해 입력, 실행 기록, UI 리뷰 상태를 보관합니다.
+- 명시적인 apply 단계 전에는 애플리케이션 소스 파일을 건드리지 않습니다.
+- 저장된 UI 요청이 없으면 억지로 진행하지 않고 현재 상태를 알려줍니다.
+- 구현자가 무엇을 만들고, 무엇을 제외하고, 어디서 시작해야 하는지 알 수 있어야 완료입니다.
 
-## 설치와 사용 준비
+## 설치와 연결
 
-GIQO는 별도 빌드가 필요한 패키지가 아니라, 에이전트가 읽는 **스킬 폴더**입니다. 설치의 핵심은 이 저장소를 에이전트가 접근할 수 있는 위치에 두고 `SKILL.md`, `commands/`, `references/`, `templates/`를 함께 읽게 하는 것입니다.
-
-### 1. 저장소 받기
+GIQO는 별도 빌드가 필요한 패키지가 아니라 agent가 읽는 skill 폴더입니다.
 
 ```bash
 git clone <repo-url> GIQO-skill
 cd GIQO-skill
 ```
 
-### 2. 에이전트에 연결하기
-
-사용 중인 환경에 맞게 아래 중 하나로 연결합니다.
+사용 중인 환경에서 `SKILL.md`, `commands/`, `references/`, `templates/`를 함께 읽을 수 있게 연결하세요.
 
 | 환경 | 권장 방식 |
 |---|---|
-| Claude / Claude Code | 스킬 디렉터리로 `GIQO-skill/`을 등록하거나, 작업 세션에서 이 폴더의 `SKILL.md`를 참조하게 합니다. |
-| Codex | 작업 레포 옆이나 공용 skills 폴더에 두고, 요청 시 `GIQO-skill/SKILL.md`를 기준 지침으로 읽게 합니다. |
-| OpenCode | skills 경로에 이 폴더를 두거나, 세션에서 이 저장소를 열고 GIQO 요청을 실행합니다. |
-| 기타 에이전트 | `SKILL.md`를 시작 지침으로 읽고 `references/`, `commands/`, `templates/`를 같은 상대 경로로 접근하게 합니다. |
-
-### 3. 프로젝트에서 사용하기
-
-새 프로젝트나 기존 레포에서 다음처럼 요청하면 됩니다.
-
-```text
-GIQO로 이 프로젝트 입력 자료를 분석해서 구현에 필요한 설계 문서만 만들어줘.
-```
-
-기존 프로젝트라면 GIQO는 기본적으로 `.giqo/` 작업 공간에 자료와 실행 결과를 정리합니다. 애플리케이션 소스 파일은 명시적인 apply 단계 전에는 수정하지 않습니다.
-
-### 4. UI 리뷰 실행 준비
-
-Visual Review 화면을 직접 열려면 Node.js가 필요합니다. 별도 패키지 설치 없이 저장소의 스크립트를 실행합니다.
-
-```bash
-node scripts/open-visual-review.mjs templates/visual-review/mockup.html
-```
-
-저장된 UI 수정 요청을 실제 작업으로 반영하고 싶으면 자연어로 요청하면 됩니다.
-
-```text
-저장된 UI 수정 요청 있으면 확인하고 적용 가능한 작업을 진행해줘.
-```
-
-저장된 요청이나 필요한 문서가 없으면 GIQO는 현재 상태를 알려주고 멈춥니다.
-
-## 사용 예시
-
-아래 문장은 고정된 명령어가 아니라 예시입니다. 같은 의도라면 자연어로 말해도 됩니다.
-
-```text
-./input을 GIQO로 분석해서 구현에 필요한 설계 문서만 만들어줘.
-불명확한 건 최소한만 질문하고, 내가 스킵하면 합리적으로 가정해서 기록해줘.
-```
-
-UI 리뷰 피드백 반영 예시:
-
-```text
-.giqo에 저장된 UI 리뷰 피드백을 읽고 UI/UX 명세와 구현 계획을 업데이트해줘.
-```
-
-같은 의미의 자연어 예시:
-
-```text
-방금 리뷰 코멘트 반영해서 UI 문서랑 구현 계획 정리해줘.
-```
-
-수정 요청 반영 예시:
-
-```text
-저장된 UI 수정 요청 확인하고 적용 가능한 작업을 진행해줘.
-```
-
-같은 의미의 자연어 예시:
-
-```text
-아까 저장한 UI 수정사항 있으면 반영해줘.
-```
+| Claude / Claude Code | skill 디렉터리로 `GIQO-skill/` 등록 |
+| Codex | 작업 레포 옆이나 공용 skills 폴더에 배치 |
+| OpenCode | skills 경로에 두거나 이 저장소를 세션에서 열기 |
+| 기타 agent | `SKILL.md`를 시작 지침으로 읽고 상대 경로 유지 |
 
 ## 저장소 구조
 
@@ -187,12 +202,5 @@ GIQO-skill/
 ├── scripts/
 ├── references/
 ├── templates/
-│   ├── docs/
-│   ├── mermaid/
-│   └── visual-review/
-└── examples/
+└── git-readme/
 ```
-
-## 핵심 원칙
-
-목표는 문서를 많이 만드는 것이 아닙니다. 구현자가 무엇을 만들고, 무엇을 제외하고, 어디서 시작해야 하는지 바로 알 수 있는 설계 패키지를 만드는 것입니다.

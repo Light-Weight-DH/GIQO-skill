@@ -1,152 +1,195 @@
 # GIQO Skill
 
-GIQO means **Garbage In, Quality Out**: a planning skill that turns messy project inputs into implementation-ready design documents.
+<p align="center">
+  <strong>Garbage In, Quality Out</strong><br>
+  An agent skill that turns messy requirements, images, references, and existing projects into implementation-ready design docs and work plans.
+</p>
 
-Drop rough requirements, screenshots, references, old project files, meeting notes, or partial ideas into an input folder. GIQO analyzes what is there, asks only the questions that matter, makes reasonable assumptions when the user skips, and generates only the documents the project actually needs.
+<p align="center">
+  <a href="README.md"><img alt="Docs: Korean" src="https://img.shields.io/badge/docs-Korean-blue"></a>
+  <img alt="Platform: Agent Skill" src="https://img.shields.io/badge/platform-Agent%20Skill-4f46e5">
+  <img alt="Visual Review" src="https://img.shields.io/badge/visual%20review-live%20UI-16a34a">
+  <img alt="No build required" src="https://img.shields.io/badge/build-not%20required-64748b">
+</p>
 
-## What GIQO creates
+<p align="center">
+  <a href="#core-workflow">Core workflow</a> ·
+  <a href="#real-user-flows">Real user flows</a> ·
+  <a href="#visual-review-mode">Visual Review</a> ·
+  <a href="#skill-commands-and-visible-ui">Skill commands</a> ·
+  <a href="docs/visual-review.md">Visual Review details</a>
+</p>
 
-GIQO does not blindly create every possible planning document. It selects from these outputs based on the source material:
+## What it does
 
-- `00_INDEX.md` - navigation map for the generated design package
-- `01_REQUIREMENTS.md` - extracted requirements, constraints, and acceptance signals
-- `02_ASSUMPTIONS.md` - decisions made when source material was incomplete
-- `03_PRODUCT_SPEC.md` - user goals, scope, workflows, and non-goals
-- `04_ARCHITECTURE.md` - system shape, modules, data flow, and integration points
-- `05_IMPLEMENTATION_PLAN.md` - ordered work plan for an implementation agent
-- `06_UI_UX_SPEC.md` - UI structure, states, accessibility, wireframe/mockup notes
-- `07_DATA_MODEL.md` - entities, relationships, ERD, and persistence notes
-- `08_API_SPEC.md` - endpoints, contracts, auth, errors, and examples
-- `09_RISK_AND_DECISIONS.md` - tradeoffs, unresolved issues, and mitigation plan
+GIQO does not require a polished spec. It reads rough project material and creates only the documents needed for implementation.
 
-When useful, GIQO also emits Mermaid diagrams:
+- Extract requirements, constraints, and acceptance signals
+- Record assumptions when source material is incomplete
+- Summarize product flows, UI/UX, data model, API, and architecture
+- Produce an ordered work plan for an implementation agent
+- Let reviewers select UI targets and save edit requests from the browser
 
-- ERD for data-heavy systems
-- Flowchart for complex user or business flows
-- Sequence diagram for cross-system interactions
-- Gantt chart for timeline-driven work
+It does not blindly generate every possible document. Output is selected from the project context.
+
+## Core workflow
+
+```text
+rough inputs / existing repo / screenshots / review notes
+→ GIQO classifies inputs and asks only necessary questions
+→ selected docs are created or updated
+→ Visual Review saves UI requests against stable targets
+→ ingest/apply steps reflect saved requests in docs or implementation work
+```
+
+Common outputs:
+
+| Document | Purpose |
+|---|---|
+| `00_INDEX.md` | Navigation map for the generated package |
+| `01_REQUIREMENTS.md` | Requirements, constraints, acceptance signals |
+| `02_ASSUMPTIONS.md` | Assumptions made from incomplete material |
+| `03_PRODUCT_SPEC.md` | Goals, scope, workflows |
+| `04_ARCHITECTURE.md` | System shape and integration points |
+| `05_IMPLEMENTATION_PLAN.md` | Ordered implementation and verification plan |
+| `06_UI_UX_SPEC.md` | UI structure, states, accessibility decisions |
+| `07_DATA_MODEL.md` | Entities, relationships, persistence notes |
+| `08_API_SPEC.md` | APIs, commands, external contracts |
+| `09_RISK_AND_DECISIONS.md` | Risks, decisions, unresolved issues |
+
+## Real user flows
+
+### Start from an existing project
+
+From the project root, ask naturally:
+
+```text
+/giqo Based on the current project in this directory, create implementation-ready design docs and a work plan while preserving the existing structure.
+```
+
+GIQO reads the repo structure, existing code, docs, and `.giqo/` state, then asks only questions that materially change the plan.
+
+```text
+Questions:
+1. Should this plan target an MVP slice or the full redesign?
+2. Should existing API and DB structure be preserved?
+```
+
+If you answer or say “make reasonable assumptions,” GIQO creates only the needed docs and records the next implementation steps in `05_IMPLEMENTATION_PLAN.md`.
+
+### Use references or source materials
+
+After placing screenshots, competitor links, meeting notes, or old docs in an input folder, ask:
+
+```text
+/giqo Read ./input together with the current project and update the UI/UX spec and implementation plan.
+```
+
+GIQO classifies sources by trust and relevance, records conflicts as assumptions or risks, and creates or refreshes Visual Review when UI decisions matter.
+
+### Start from a raw idea
+
+You can begin without a repo or polished docs.
+
+```text
+/giqo I want to build a tool that turns teammate requirements and screenshots into implementation-ready docs.
+Ask only the minimum questions; if I skip, make reasonable assumptions.
+```
+
+GIQO narrows the scope, users, and core flow, selects the needed documents, and records missing context in `02_ASSUMPTIONS.md`.
+
+### Apply saved UI requests
+
+After saving requests in Visual Review, ask:
+
+```text
+/giqo Check the UI requests saved under .giqo and apply the actionable ones.
+```
+
+GIQO reads saved requests and updates status through `saved → running → applied/failed` while reflecting the work in docs or UI implementation.
 
 ## Visual Review Mode
 
-For UI-heavy projects, GIQO can generate a browser-openable review artifact:
+Visual Review lets reviewers select a component or region on a generated mockup or real app screen, then save an edit request against that target, similar to selecting components in Claude Design.
+
+![GIQO Visual Review demo](git-readme/GIQO_UI_view_3.gif)
+
+Users do not need to remember Node commands. Ask through the agent prompt:
 
 ```text
-ui-review/
-├── wireframe.html
-├── mockup.html
-├── review.css
-├── review.js
-├── comments.schema.json
-└── review-export.md
+/giqo Open UI edit mode for the current screen.
 ```
 
-The generated HTML uses stable `data-gqo-id` attributes. Reviewers can click a visible element or choose it from the Target list, then add comments or edit requests. When opened with the local launcher, feedback is saved automatically under `.giqo/ui-review/<screen>/`. A later GIQO run can ingest that saved feedback and update `06_UI_UX_SPEC.md`, `05_IMPLEMENTATION_PLAN.md`, and unresolved-risk notes.
-
-Open the review screen with the bundled launcher:
-
-```bash
-node scripts/open-visual-review.mjs templates/visual-review/mockup.html
+```text
+/giqo Open http://localhost:3000 in Visual Review so I can save UI edit requests.
 ```
 
-Open edit-request mode and link to the actual app screen:
+Visible browser controls:
 
-```bash
-node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
+- `Status`: filter saved requests by `saved`, `running`, `applied`, or `failed`.
+- `Target`: choose the UI target for the request.
+- `Refresh`: reload state updated by the agent.
+- `Hide feedback` / `Show feedback`: collapse or expand the saved request panel.
+- `Edit` / `Delete` on saved request cards: update or remove existing requests.
+
+The browser does not directly mutate source code. To apply saved requests, ask the agent again:
+
+```text
+/giqo Apply the UI requests I just saved.
 ```
 
-Useful variants:
+Quick terms:
 
-```bash
-node scripts/open-visual-review.mjs templates/visual-review/wireframe.html
-node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
-node scripts/open-visual-review.mjs --no-open
-```
+| Term | Meaning |
+|---|---|
+| Target | Stable UI ID for a request. Example: `home.hero.primary-cta` |
+| `saved` | Captured, not started yet |
+| `running` | Agent work has started |
+| `applied` | Reflected in docs, artifacts, or source |
+| `failed` | Not actionable, rejected, blocked, or failed |
 
-Saved browser edit requests become work items in `.giqo/ui-review/<screen>/change-requests.json` for GIQO to read in the next step. Currently visible reviewable targets are also saved in `targets.json` so later runs can skip most initial UI mapping. Hidden or offscreen states are lazy-mapped only when the reviewer opens or requests them. Status is not a reviewer-controlled selector; the agent updates it to `saved`, `running`, `applied`, or `failed` as work progresses. The browser artifact does not directly mutate source code or send an AI-session message in v1; use `/giqo-apply` or ask naturally to apply the saved UI requests.
+For storage files, iframe live shell, proxying, and target mapping details, see [Visual Review details](docs/visual-review.md).
 
-The `--actual` URL opens an iframe live shell. GIQO toolbar, panel, overlay, and CSS stay outside the iframe, so the actual app DOM does not receive `review.css`, pins, toolbar markup, or layout helpers. When the launcher can proxy the actual page through the same-origin `/__gqo/actual/` route and the app exposes stable `data-gqo-id` values, reviewers can target visible actual-screen elements. If proxy/iframe loading is blocked or no stable targets are present, use the generated `wireframe.html` or `mockup.html` as the commentable surface and keep the actual screen as a comparison reference.
+## Skill commands and visible UI
 
-## Existing projects and commands
+Slash command registration depends on the host platform, but GIQO expects these standard workflow units:
 
-For an existing repository, GIQO uses a `.giqo/` workspace for inputs, runs, and UI review artifacts while keeping application source files separate until an apply step is explicitly allowed.
+| Command | Role | User-visible result |
+|---|---|---|
+| `/giqo-init` | Create or refresh `.giqo/` workspace | Current project state and storage location |
+| `/giqo-plan` | Analyze inputs and create selected docs | Selected docs, questions, assumptions, work plan |
+| `/giqo-ui` | Create or refresh UI docs and Visual Review | Reviewable screen or actual-screen connection |
+| `/giqo-ingest` | Ingest saved comments, requests, or new materials | Updated docs and remaining questions |
+| `/giqo-apply` | Apply approved plans or saved UI requests | Progress status and applied/failed results |
 
-Command specs live in `commands/`:
+Exact commands are optional. Natural language requests are routed to the closest workflow.
 
-- `/giqo-init`
-- `/giqo-plan`
-- `/giqo-ui`
-- `/giqo-apply`
-- `/giqo-ingest`
+The Visual Review browser UI only exposes `Status`, `Target`, `Refresh`, `Hide/Show feedback`, and saved-card `Edit/Delete`. Users do not need to handle internal storage files, iframe proxy details, or the Node launcher directly.
 
-## Platform support
+## Existing-project principles
 
-GIQO is written as a platform-neutral skill. Use the same repository from:
+- GIQO uses `.giqo/` as the workspace for inputs, runs, and UI review state.
+- Application source files stay untouched until an apply step is explicitly allowed.
+- If no saved UI requests exist, GIQO reports that state instead of pretending to work.
+- The handoff is complete only when a builder can tell what to build, what to skip, and where to start.
 
-- Claude / Claude Code
-- Codex
-- OpenCode
-- Any agent that can read `SKILL.md` and the `references/` directory
+## Installation
 
-## Installation and setup
-
-GIQO is not a package that needs a build step. It is a **skill folder** for an agent to read. Installation means placing this repository somewhere the agent can access and keeping `SKILL.md`, `commands/`, `references/`, and `templates/` together.
-
-### 1. Clone the repository
+GIQO is not a buildable package. It is a skill folder read by an agent.
 
 ```bash
 git clone <repo-url> GIQO-skill
 cd GIQO-skill
 ```
 
-### 2. Connect it to your agent
-
-Use the option that matches your environment.
+Connect the folder so your agent can read `SKILL.md`, `commands/`, `references/`, and `templates/` together.
 
 | Environment | Recommended setup |
 |---|---|
-| Claude / Claude Code | Register `GIQO-skill/` as a skill directory, or make the session read this folder's `SKILL.md`. |
-| Codex | Place it next to the target repo or in a shared skills folder, then have the session use `GIQO-skill/SKILL.md` as the guiding instruction. |
-| OpenCode | Put this folder on the skills path, or open this repository in the session and run GIQO requests from there. |
-| Other agents | Read `SKILL.md` as the entry instruction and keep `references/`, `commands/`, and `templates/` available by relative path. |
-
-### 3. Use it in a project
-
-In a new or existing project, ask naturally:
-
-```text
-Use GIQO to analyze this project's inputs and create only the design docs needed for implementation.
-```
-
-For existing projects, GIQO uses `.giqo/` as its default workspace for inputs and run outputs. It does not modify application source files until an explicit apply step.
-
-### 4. Prepare visual review
-
-To open the Visual Review screen directly, Node.js is required. No package install is needed for the bundled launcher.
-
-```bash
-node scripts/open-visual-review.mjs templates/visual-review/mockup.html
-```
-
-To apply saved UI edit requests, ask naturally:
-
-```text
-Check any saved UI edit requests and apply the actionable ones.
-```
-
-If no saved requests or required documents exist, GIQO reports the current state and stops.
-
-## Suggested invocation
-
-```text
-Use GIQO on ./input and create only the design docs needed for implementation.
-If something is unclear, ask the minimum questions; if I skip, make reasonable assumptions and record them.
-```
-
-For visual review feedback:
-
-```text
-Read the UI review feedback saved under .giqo and update the UI/UX spec and implementation plan.
-```
+| Claude / Claude Code | Register `GIQO-skill/` as a skill directory |
+| Codex | Place it next to the target repo or in a shared skills folder |
+| OpenCode | Put it on the skills path or open this repository in a session |
+| Other agents | Read `SKILL.md` and preserve relative paths |
 
 ## Repository layout
 
@@ -154,16 +197,10 @@ Read the UI review feedback saved under .giqo and update the UI/UX spec and impl
 GIQO-skill/
 ├── SKILL.md
 ├── README.md
+├── README.en.md
 ├── commands/
 ├── scripts/
 ├── references/
 ├── templates/
-│   ├── docs/
-│   ├── mermaid/
-│   └── visual-review/
-└── examples/
+└── git-readme/
 ```
-
-## Core principle
-
-The final output must work as an index and handoff package for a real builder. If an implementation agent cannot tell what to build, what to ignore, and where to start, the GIQO run is incomplete.

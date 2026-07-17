@@ -123,37 +123,17 @@ Examples include renaming a button, moving one card, changing helper text, addin
 
 GIQO should update the smallest matching unit in `06_UI_UX_SPEC.md`. If the request affects a shared component pattern, GIQO should promote it to global scope and record that choice.
 
-## Comment mode and edit request mode
+## Saved edit requests
 
-Comment mode and edit request mode are separate review intents.
+UI Edit Mode records concrete changes the reviewer wants GIQO to apply. It answers, "What should change?"
 
-### Comment mode
-
-Use comment mode for observations, questions, concerns, and approval notes.
-
-Comment mode answers, "What should the team know?"
-
-Comment examples:
-
-1. "This card feels too dense."
-2. "Can we confirm whether this metric is available?"
-3. "Legal needs to review this wording."
-
-Comments may become risks, questions, or follow up tasks. They do not change the UI by themselves.
-
-### Edit request mode
-
-Use edit request mode for concrete changes the reviewer wants GIQO to apply.
-
-Edit request mode answers, "What should change?"
-
-Edit request examples:
+Request examples:
 
 1. "Rename this button to Start trial."
 2. "Add an empty state to this table."
 3. "Use this card layout for all pricing tiers."
 
-An edit request should include target, scope, requested change, reason, and status. If the request lacks a clear target or change, ingest it as a comment, not an edit.
+A saved request should include target, scope, requested change, reason when available, and status. If the request lacks a clear target or change, mark it `failed` or preserve it as an unresolved question in the handoff rather than applying it silently.
 
 ## Edit request status
 

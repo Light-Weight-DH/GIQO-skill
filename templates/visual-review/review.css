@@ -243,6 +243,16 @@ body[data-gqo-feedback-collapsed="true"] #gqo-comments {
   justify-content: space-between;
 }
 
+.gqo-list-actions {
+  display: flex;
+  gap: var(--gqo-space-2);
+  justify-content: flex-end;
+}
+
+.gqo-list-actions button:last-child {
+  color: var(--gqo-danger);
+}
+
 .gqo-status {
   width: fit-content;
   padding: 4px 8px;
@@ -361,10 +371,6 @@ body[data-gqo-feedback-collapsed="true"] #gqo-comments {
 .gqo-empty {
   margin: var(--gqo-space-2) 0;
   color: var(--gqo-text);
-}
-
-body[data-gqo-mode="edit"] [data-gqo-id].gqo-highlight {
-  outline-style: dashed;
 }
 
 .gqo-card {

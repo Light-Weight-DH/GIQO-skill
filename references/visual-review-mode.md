@@ -1,13 +1,13 @@
 # Visual Review Mode
 
-Visual Review Mode makes wireframes and mockups commentable in the browser.
+Visual Review Mode makes wireframes, mockups, and proxied actual screens editable through saved UI requests in the browser.
 
 ## Behavior
 
 1. Open `wireframe.html` or `mockup.html` with `node scripts/open-visual-review.mjs`.
 2. Hover reviewable elements to see a highlight.
 3. Click a reviewable element, choose it from the Target dropdown, or choose Global.
-4. Write a comment or edit request with severity.
+4. Write a UI edit request with severity.
 5. Save feedback automatically to `.giqo/ui-review/<screen>/`.
 6. Use Refresh to reload the latest agent-updated review state.
 7. Reuse `.giqo/ui-review/<screen>/targets.json` to avoid remapping the same screen on every run.
@@ -18,7 +18,7 @@ Visual Review Mode makes wireframes and mockups commentable in the browser.
 When launched with `--actual`, the local launcher opens `live-shell.html` instead of injecting review controls into the app page:
 
 ```bash
-node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
+node scripts/open-visual-review.mjs ./ui-review/mockup.html --actual http://localhost:3000
 ```
 
 The actual app is loaded inside an iframe through the launcher's same-origin `/__gqo/actual/` proxy. The GIQO toolbar, feedback panel, overlay boxes, and review CSS live in the outer shell, not in the app DOM. This keeps app-level CSS such as `:root`, `body`, layout, and `[data-gqo-id]` positioning untouched while still allowing the shell to read currently visible `data-gqo-id` targets.
@@ -35,12 +35,12 @@ data-gqo-id="screen.section.element"
 
 Use stable semantic IDs, not visual positions.
 
-## Comment ingestion
+## Request ingestion
 
 When `.giqo/ui-review/<screen>/comments.json` or `change-requests.json` exists, GIQO should:
 
 - load `targets.json` first when present
-- map each comment to the target `data-gqo-id`
+- map each saved request to the target `data-gqo-id`
 - update UI/UX decisions
 - add implementation tasks for actionable change requests
 - preserve unresolved comments in `09_RISK_AND_DECISIONS.md`

@@ -106,20 +106,19 @@ Requirements:
 - For first-run mapping, discover currently visible targets first and lazily map hidden or offscreen states only when they become relevant.
 - Wireframes prioritize structure and hierarchy.
 - Mockups prioritize visual direction, spacing, typography, color, and component feel.
-- Comments and edit requests are stored separately from the HTML under `.giqo/ui-review/<screen>/` when launched locally.
-- GIQO must be able to ingest saved comments and update `06_UI_UX_SPEC.md` and `05_IMPLEMENTATION_PLAN.md`.
+- Saved UI edit requests are stored separately from the HTML under `.giqo/ui-review/<screen>/` when launched locally.
+- Saved requests can be edited or deleted from the browser, and the JSON/Markdown state must stay aligned.
+- GIQO must be able to ingest saved requests and update `06_UI_UX_SPEC.md` and `05_IMPLEMENTATION_PLAN.md`.
 - Prefer `node scripts/open-visual-review.mjs <html-file>` to launch a local review server and open the browser.
-- Use `mode=comment` for observations and questions.
-- Use `mode=edit` for actionable UI change requests.
-- Browser save records comments and edit requests; it does not directly mutate source code or send a message to an AI session in v1.
+- Browser save records structured UI edit requests; it does not directly mutate source code or send a message to an AI session in v1.
 - Before starting UI work, check for `saved`, `running`, `applied`, and `failed` requests.
 
 Prefer this flow:
 
 ```text
 generate wireframe/mockup HTML
-→ user runs `node scripts/open-visual-review.mjs ui-review/mockup.html --mode edit`
-→ user writes element or global comments/change requests
+→ user runs `node scripts/open-visual-review.mjs ui-review/mockup.html`
+→ user selects an element or Global and writes a UI edit request
 → browser auto-saves `.giqo/ui-review/<screen>/targets.json`, `comments.json`, `change-requests.json`, and `review.md`
 → GIQO ingests pending requests
 → docs and implementation plan are updated

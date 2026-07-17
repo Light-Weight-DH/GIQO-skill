@@ -11,13 +11,13 @@ function printHelp() {
   console.log(`GIQO Visual Review launcher
 
 Usage:
-  node scripts/open-visual-review.mjs [html-file] [--port 8765] [--host 127.0.0.1] [--mode comment|edit] [--actual URL] [--no-open]
+  node scripts/open-visual-review.mjs [html-file] [--port 8765] [--host 127.0.0.1] [--actual URL] [--no-open]
 
 Examples:
   node scripts/open-visual-review.mjs
   node scripts/open-visual-review.mjs templates/visual-review/wireframe.html
   node scripts/open-visual-review.mjs ./ui-review/mockup.html --port 9000
-  node scripts/open-visual-review.mjs ./ui-review/mockup.html --mode edit --actual http://localhost:3000
+  node scripts/open-visual-review.mjs ./ui-review/mockup.html --actual http://localhost:3000
   node scripts/open-visual-review.mjs --no-open
 `);
 }
@@ -27,7 +27,6 @@ function parseArgs(argv) {
     file: defaultFile,
     host: "127.0.0.1",
     port: 8765,
-    mode: "comment",
     actual: "",
     openBrowser: true,
   };
@@ -53,7 +52,6 @@ function parseArgs(argv) {
       continue;
     }
     if (arg === "--mode") {
-      options.mode = argv[index + 1] || options.mode;
       index += 1;
       continue;
     }
@@ -70,10 +68,6 @@ function parseArgs(argv) {
   if (!Number.isInteger(options.port) || options.port < 1 || options.port > 65535) {
     throw new Error("Port must be an integer between 1 and 65535.");
   }
-  if (!["comment", "edit"].includes(options.mode)) {
-    throw new Error("Mode must be either comment or edit.");
-  }
-
   return options;
 }
 
@@ -247,7 +241,7 @@ function main() {
   const root = resolve(filePath, "..");
   const dir = stateDir(reviewFilePath);
   const fileName = filePath.split(sep).pop();
-  const query = new URLSearchParams({ mode: options.mode });
+  const query = new URLSearchParams();
   if (actualUrl) {
     query.set("actual", actualUrl.href);
   }

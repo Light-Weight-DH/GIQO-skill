@@ -64,7 +64,7 @@ Common outputs:
 From the project root, ask naturally:
 
 ```text
-/giqo Based on the current project in this directory, create implementation-ready design docs and a work plan while preserving the existing structure.
+/giqo-skill Based on the current project in this directory, create implementation-ready design docs and a work plan while preserving the existing structure.
 ```
 
 GIQO reads the repo structure, existing code, docs, and `.giqo/` state, then asks only questions that materially change the plan.
@@ -82,7 +82,7 @@ If you answer or say “make reasonable assumptions,” GIQO creates only the ne
 After placing screenshots, competitor links, meeting notes, or old docs in an input folder, ask:
 
 ```text
-/giqo Read ./input together with the current project and update the UI/UX spec and implementation plan.
+/giqo-skill Read ./input together with the current project and update the UI/UX spec and implementation plan.
 ```
 
 GIQO classifies sources by trust and relevance, records conflicts as assumptions or risks, and creates or refreshes Visual Review when UI decisions matter.
@@ -92,7 +92,7 @@ GIQO classifies sources by trust and relevance, records conflicts as assumptions
 You can begin without a repo or polished docs.
 
 ```text
-/giqo I want to build a tool that turns teammate requirements and screenshots into implementation-ready docs.
+/giqo-skill I want to build a tool that turns teammate requirements and screenshots into implementation-ready docs.
 Ask only the minimum questions; if I skip, make reasonable assumptions.
 ```
 
@@ -103,7 +103,7 @@ GIQO narrows the scope, users, and core flow, selects the needed documents, and 
 After saving requests in Visual Review, ask:
 
 ```text
-/giqo Check the UI requests saved under .giqo and apply the actionable ones.
+/giqo-skill Check the UI requests saved under .giqo and apply the actionable ones.
 ```
 
 GIQO reads saved requests and updates status through `saved → running → applied/failed` while reflecting the work in docs or UI implementation.
@@ -117,11 +117,11 @@ Visual Review lets reviewers select a component or region on a generated mockup 
 Users do not need to remember Node commands. Ask through the agent prompt:
 
 ```text
-/giqo Open UI edit mode for the current screen.
+/giqo-skill Open UI edit mode for the current screen.
 ```
 
 ```text
-/giqo Open http://localhost:3000 in Visual Review so I can save UI edit requests.
+/giqo-skill Open http://localhost:3000 in Visual Review so I can save UI edit requests.
 ```
 
 Visible browser controls:
@@ -135,7 +135,7 @@ Visible browser controls:
 The browser does not directly mutate source code. To apply saved requests, ask the agent again:
 
 ```text
-/giqo Apply the UI requests I just saved.
+/giqo-skill Apply the UI requests I just saved.
 ```
 
 Quick terms:
@@ -152,17 +152,17 @@ For storage files, iframe live shell, proxying, and target mapping details, see 
 
 ## Skill commands and visible UI
 
-Slash command registration depends on the host platform, but GIQO expects these standard workflow units:
+In environments like OpenCode, this skill usually appears as the native `/giqo-skill` command. GIQO expects these standard workflow units:
 
-| Command | Role | User-visible result |
+| Example request | Role | User-visible result |
 |---|---|---|
-| `/giqo-init` | Create or refresh `.giqo/` workspace | Current project state and storage location |
-| `/giqo-plan` | Analyze inputs and create selected docs | Selected docs, questions, assumptions, work plan |
-| `/giqo-ui` | Create or refresh UI docs and Visual Review | Reviewable screen or actual-screen connection |
-| `/giqo-ingest` | Ingest saved comments, requests, or new materials | Updated docs and remaining questions |
-| `/giqo-apply` | Apply approved plans or saved UI requests | Progress status and applied/failed results |
+| `/giqo-skill init` | Create or refresh `.giqo/` workspace | Current project state and storage location |
+| `/giqo-skill plan` | Analyze inputs and create selected docs | Selected docs, questions, assumptions, work plan |
+| `/giqo-skill ui` | Create or refresh UI docs and Visual Review | Reviewable screen or actual-screen connection |
+| `/giqo-skill ingest` | Ingest saved comments, requests, or new materials | Updated docs and remaining questions |
+| `/giqo-skill apply` | Apply approved plans or saved UI requests | Progress status and applied/failed results |
 
-Exact commands are optional. Natural language requests are routed to the closest workflow.
+Exact subwords are optional. Put the natural-language request after `/giqo-skill`, and GIQO routes it to the closest workflow.
 
 The Visual Review browser UI only exposes `Status`, `Target`, `Refresh`, `Hide/Show feedback`, and saved-card `Edit/Delete`. Users do not need to handle internal storage files, iframe proxy details, or the Node launcher directly.
 

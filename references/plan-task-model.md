@@ -36,6 +36,8 @@ Persistent planning state lives under `.giqo/plans/`.
 
 `plan.json` records plan identity and document location. `tasks.json` records phases, tasks, and evidence. Generated docs must remain user-facing; `.giqo` must not become the only copy of important decisions.
 
+Use `scripts/update-plan-state.mjs` when an agent needs to create or update this state from structured JSON input. The script upserts `plan.json` and `tasks.json`; it does not edit application source or generate dashboard HTML.
+
 ## Plan creation and branching
 
 Create a new Plan when the existing Plan cannot cover a requirement by adding tasks or editing a small number of phases.

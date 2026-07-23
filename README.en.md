@@ -176,6 +176,8 @@ In environments like OpenCode, this skill usually appears as the native `/giqo-s
 
 Exact subwords are optional. Put the natural-language request after `/giqo-skill`, and GIQO routes it to the closest workflow.
 
+Agents use `scripts/update-plan-state.mjs` to write structured Plan/Phase/Task input into real state files. The script only creates or updates `.giqo/plans/<plan-id>/plan.json` and `tasks.json`; it does not edit application source.
+
 The Visual Review browser UI only exposes `Status`, `Target`, `Refresh`, `Hide/Show feedback`, and saved-card `Edit/Delete`. Users do not need to handle internal storage files, iframe proxy details, or the Node launcher directly.
 
 The Plan Dashboard is read-only. When Task state must change, the agent reads Plan/Task state, proposes the needed action, and updates state only after the decision is clear.

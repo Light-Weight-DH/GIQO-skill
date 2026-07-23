@@ -49,7 +49,8 @@ It must not edit application source.
 7. In brownfield mode, tie implementation steps to existing files or modules when known.
 8. Apply `references/plan-task-model.md` to decide whether to update the current Plan, create a child Plan, or create a new root Plan.
 9. Convert implementation phases from `05_IMPLEMENTATION_PLAN.md` into `tasks.json` when the work can be expressed as actionable tasks.
-10. Do not rewrite non-terminal tasks in an existing Phase without first reporting the reconciliation choices to the user.
+10. Use `scripts/update-plan-state.mjs` to write `.giqo/plans/<plan-id>/plan.json` and `tasks.json` from structured Plan/Phase/Task input.
+11. Do not rewrite non-terminal tasks in an existing Phase without first reporting the reconciliation choices to the user.
 
 ## Completion report
 

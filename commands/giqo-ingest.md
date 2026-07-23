@@ -47,6 +47,7 @@ It must not edit application source.
 7. If the requested feedback source is missing or empty, report the current state and recommended next action instead of creating placeholder deltas.
 8. When docs or evidence affect an existing Phase, inspect non-terminal tasks before proposing task changes.
 9. If tasks no longer match the changed docs, ask the user to keep, update, stash, cancel, or create a new Plan before writing task changes.
+10. After the reconciliation action is clear, use `scripts/update-plan-state.mjs` to apply the approved task-state update.
 
 ## Completion report
 

@@ -33,6 +33,7 @@ Read new evidence into an active GIQO workspace and produce a planning delta.
 2. Updated source ledger.
 3. Planning delta for affected docs.
 4. Task reconciliation proposal for affected Plans or Phases.
+5. Linked `sourceReviewRequests` in `.giqo/plans/<plan-id>/tasks.json` when saved UI requests are promoted to tasks.
 
 It must not edit application source.
 
@@ -48,9 +49,10 @@ It must not edit application source.
 8. When docs or evidence affect an existing Phase, inspect non-terminal tasks before proposing task changes.
 9. If tasks no longer match the changed docs, ask the user to keep, update, stash, cancel, or create a new Plan before writing task changes.
 10. After the reconciliation action is clear, use `scripts/update-plan-state.mjs` to apply the approved task-state update.
+11. When saved UI requests should become task sources, run `scripts/link-review-requests.mjs --plan-id <plan-id> --screen <screen> --phase-id <phase-id>` after the target Phase is clear.
 
 ## Completion report
 
-Report ingested sources, affected docs, affected Plans/Phases, task reconciliation needs, conflicts, assumptions changed, and the recommended next command.
+Report ingested sources, affected docs, affected Plans/Phases, linked review requests, task reconciliation needs, conflicts, assumptions changed, and the recommended next command.
 
 If no new feedback exists, say so directly, for example: `No saved review comments or UI edit requests were found for the current run.`

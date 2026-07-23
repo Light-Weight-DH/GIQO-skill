@@ -162,6 +162,9 @@ After save, GIQO may ingest edit requests and update:
 2. `05_IMPLEMENTATION_PLAN.md`
 3. `09_RISK_AND_DECISIONS.md` when a request is failed or unresolved
 4. regenerated `wireframe.html` or `mockup.html` when the workflow creates a fresh review artifact
+5. `.giqo/plans/<plan-id>/tasks.json` when the request is promoted to implementation work
+
+Use `scripts/link-review-requests.mjs` after the destination Plan and Phase are known. The linker adds request ids to Task `sourceReviewRequests` and records `linkedTask` back in `.giqo/ui-review/<screen>/change-requests.json`. It must not mark the request applied or mutate application source.
 
 Version 1 must not directly patch application source code. It must not treat browser edits as live DOM mutations that persist to project files. It must not claim an edit is applied to the actual screen until GIQO has ingested the saved requests and updated the authoritative docs or regenerated review artifact.
 

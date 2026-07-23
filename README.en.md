@@ -180,6 +180,8 @@ Exact subwords are optional. Put the natural-language request after `/giqo-skill
 
 Agents use `scripts/update-plan-state.mjs` to write structured Plan/Phase/Task input into real state files. The script only creates or updates `.giqo/plans/<plan-id>/plan.json` and `tasks.json`; it does not edit application source.
 
+Agents use `scripts/link-review-requests.mjs` when saved Visual Review requests should become Task sources. The script links Task `sourceReviewRequests` and request `linkedTask`; it does not mark requests applied or edit source code.
+
 The Visual Review browser UI only exposes `Status`, `Target`, `Refresh`, `Hide/Show feedback`, and saved-card `Edit/Delete`. Users do not need to handle internal storage files, iframe proxy details, or the Node launcher directly.
 
 The Plan Dashboard is read-only. When Task state must change, the agent reads Plan/Task state, proposes the needed action, and updates state only after the decision is clear.

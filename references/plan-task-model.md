@@ -126,6 +126,14 @@ Recommended fields:
 
 Do not use task evidence to store secrets, large logs, or full diffs.
 
+Saved Visual Review requests can be promoted into tasks with:
+
+```bash
+node scripts/link-review-requests.mjs --plan-id <plan-id> --screen <screen> --phase-id <phase-id>
+```
+
+The linker writes request ids into Task `sourceReviewRequests` and writes `linkedTask` back to `.giqo/ui-review/<screen>/change-requests.json`. It does not change request status, task status for existing tasks, task evidence, or application source.
+
 ## Dashboard policy
 
 The Plan Dashboard is read-only. It renders `.giqo/plans/<plan-id>/plan.json` and `tasks.json` so users can see progress across Plans, Phases, and Tasks. Users must not edit task state directly in the dashboard.

@@ -180,6 +180,8 @@ OpenCode 같은 환경에서는 이 스킬이 보통 `/giqo-skill` native comman
 
 Agent는 구조화된 Plan/Phase/Task 입력을 실제 상태 파일로 쓸 때 `scripts/update-plan-state.mjs`를 사용합니다. 이 스크립트는 `.giqo/plans/<plan-id>/plan.json`과 `tasks.json`만 생성/갱신하며 애플리케이션 소스는 수정하지 않습니다.
 
+Visual Review에서 저장한 UI 요청을 Task와 연결할 때는 `scripts/link-review-requests.mjs`를 사용합니다. 이 스크립트는 Task의 `sourceReviewRequests`와 요청의 `linkedTask`만 연결하며, 요청을 적용 완료로 표시하거나 소스 코드를 수정하지 않습니다.
+
 실제 Visual Review 브라우저 UI에는 `Status`, `Target`, `Refresh`, `Hide/Show feedback`, 저장 요청의 `Edit/Delete`만 노출됩니다. 내부 저장 파일, iframe proxy, Node launcher 실행 방식은 사용자가 직접 다루지 않아도 됩니다.
 
 Plan Dashboard는 읽기 전용입니다. Task 상태를 바꿔야 할 때는 agent가 Plan/Task 상태를 읽고 필요한 조치를 제안한 뒤 사용자의 확인을 받아 갱신합니다.

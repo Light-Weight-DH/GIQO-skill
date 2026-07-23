@@ -1,4 +1,6 @@
-# /giqo-init
+# /giqo-skill init
+
+Legacy workflow name: `/giqo-init`.
 
 Create or refresh a `.giqo` workspace for a project.
 
@@ -6,7 +8,7 @@ Create or refresh a `.giqo` workspace for a project.
 
 1. Starting a new GIQO planning run.
 2. Switching between greenfield and brownfield mode.
-3. Preparing a repo to track inputs, assumptions, generated docs, or UI review comments.
+3. Preparing a repo to track inputs, assumptions, generated docs, Plans, Tasks, or UI review state.
 
 ## Inputs
 
@@ -28,6 +30,7 @@ Create or refresh a `.giqo` workspace for a project.
 1. `.giqo/workspace.json`.
 2. `.giqo/inputs/` when missing.
 3. `.giqo/runs/<run-id>/` for the active run.
+4. `.giqo/plans/` when missing.
 
 It must not edit application source.
 
@@ -39,7 +42,8 @@ It must not edit application source.
 4. Create a new run id unless the user asks to reuse the active run.
 5. Record defaults for output and apply policy.
 6. In brownfield mode, record a short project inventory.
+7. Prepare `.giqo/plans/` for Plan/Phase/Task tracking; do not create a Plan until planning material exists.
 
 ## Completion report
 
-Report the workspace path, selected mode, run id, output directory, and recommended next command, usually `/giqo-plan`.
+Report the workspace path, selected mode, run id, output directory, plan state location, and recommended next command, usually `/giqo-skill plan`.

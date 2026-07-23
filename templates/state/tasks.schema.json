@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://giqo.local/schemas/tasks.schema.json",
+  "title": "GIQO Plan Tasks",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["planId", "phases", "tasks", "updatedAt"],
+  "properties": {
+    "planId": {
+      "type": "string",
+      "pattern": "^plan-[a-z0-9][a-z0-9-]*$"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^phase-[a-z0-9][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "phaseId", "title", "status", "createdAt", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^task-[a-z0-9][a-z0-9-]*$"
+          },
+          "phaseId": {
+            "type": "string",
+            "pattern": "^phase-[a-z0-9][a-z0-9-]*$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["saved", "running", "applied", "failed", "stashed", "cancelled"]
+          },
+          "sourceDocs": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "sourceReviewRequests": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "targetFiles": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "changedFiles": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "verification": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "manualQa": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "notes": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

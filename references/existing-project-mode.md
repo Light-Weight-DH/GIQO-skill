@@ -18,6 +18,12 @@ Recommended layout:
       assumptions.md
       outputs/
       ingest/
+  plans/
+    <plan-id>/
+      plan.json
+      tasks.json
+      docs/
+      dashboard.html
   ui-review/
 ```
 
@@ -32,9 +38,11 @@ Recommended layout:
 | `sourcePolicy` | What inputs are authoritative |
 | `applyPolicy` | Whether GIQO may write files or only propose changes |
 
-`inputs/` stores user supplied material. `runs/` stores each analysis pass. `ui-review/` stores generated review assets and saved review state when the project uses commentable UI review.
+`inputs/` stores user supplied material. `runs/` stores each analysis pass. `plans/` stores Plan/Phase/Task state when implementation tracking is active. `ui-review/` stores generated review assets and saved review state when the project uses reviewable UI.
 
 Do not hide decisions in `.giqo` only. Anything an implementer needs must also appear in the selected docs, usually `00_INDEX.md`, `02_ASSUMPTIONS.md`, `05_IMPLEMENTATION_PLAN.md`, or `09_RISK_AND_DECISIONS.md`.
+
+Use `references/plan-task-model.md` before creating new Plans, reconciling document drift with existing tasks, or generating a Plan Dashboard.
 
 ## Greenfield flow
 
@@ -42,11 +50,12 @@ Use greenfield mode when the user is starting from rough ideas, references, scre
 
 Flow:
 
-1. Run `/giqo-init` with `mode: greenfield`.
+1. Run `/giqo-skill init` with `mode: greenfield`.
 2. Put source material in `.giqo/inputs/` or point GIQO at an input folder.
-3. Run `/giqo-plan` to create the smallest useful document set.
-4. Run `/giqo-ui` only when screens, layout, or visual review matter.
-5. Use `/giqo-apply` only to write the selected docs and review artifacts.
+3. Run `/giqo-skill plan` to create the smallest useful document set.
+4. Generate `.giqo/plans/<plan-id>/plan.json` and `tasks.json` when implementation tracking is needed.
+5. Run `/giqo-skill ui` only when screens, layout, Visual Review, or Plan Dashboard matter.
+6. Use `/giqo-skill apply` only to write the selected docs and review artifacts.
 
 Greenfield output may define new architecture, data shape, routes, UI flows, and milestones. It must still mark assumptions clearly.
 
@@ -56,12 +65,13 @@ Use brownfield mode when a codebase already exists. The current repo is source m
 
 Flow:
 
-1. Run `/giqo-init` with `mode: brownfield`.
+1. Run `/giqo-skill init` with `mode: brownfield`.
 2. Capture project facts in `.giqo/runs/<run-id>/source-ledger.md`.
-3. Run `/giqo-plan` to map desired changes onto existing modules, files, data, and flows.
-4. Run `/giqo-ui` when the change affects screens or reviewable UI.
-5. Use `/giqo-ingest` for comments, user corrections, or new project evidence.
-6. Use `/giqo-apply` only after the plan states what files may change and what files are off limits.
+3. Run `/giqo-skill plan` to map desired changes onto existing modules, files, data, and flows.
+4. Generate or update `.giqo/plans/<plan-id>/tasks.json` so phases and tasks name known affected files.
+5. Run `/giqo-skill ui` when the change affects screens, reviewable UI, or Plan Dashboard visibility.
+6. Use `/giqo-skill ingest` for comments, user corrections, document changes, or new project evidence.
+7. Use `/giqo-skill apply` only after the plan states what files may change and what files are off limits.
 
 Brownfield output must include:
 
@@ -87,4 +97,5 @@ Brownfield output must include:
 2. Do not assume a missing doc means missing behavior.
 3. Prefer updating selected docs over creating a full package.
 4. Record all uncertain repo facts as assumptions or risks.
-5. Never edit implementation files from command planning mode unless `/giqo-apply` is explicitly configured for source edits.
+5. Never edit implementation files from command planning mode unless `/giqo-skill apply` is explicitly configured for source edits.
+6. Never rewrite non-terminal tasks in a changed Phase without checking `references/plan-task-model.md` and asking the user for the reconciliation action.

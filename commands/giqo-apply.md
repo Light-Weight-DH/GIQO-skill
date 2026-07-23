@@ -1,12 +1,15 @@
-# /giqo-apply
+# /giqo-skill apply
 
-Apply approved GIQO outputs to the project.
+Legacy workflow name: `/giqo-apply`.
+
+Apply approved GIQO outputs and task work to the project.
 
 ## Use when
 
 1. A plan or UI review result has been accepted.
 2. Generated docs need to be copied into the project.
 3. The user explicitly wants approved changes written.
+4. A saved Task is ready to move through `running` to `applied` or `failed`.
 
 ## Inputs
 
@@ -15,6 +18,7 @@ Apply approved GIQO outputs to the project.
 | `run` | No | Defaults to active run |
 | `target` | No | Docs, review assets, or named source paths |
 | `allowSourceEdits` | No | Defaults to false |
+| `taskId` | No | Specific task to apply or update |
 
 ## Reads
 
@@ -23,27 +27,31 @@ Apply approved GIQO outputs to the project.
 3. Current target files.
 4. Apply policy from `references/command-policy.md`.
 5. Saved UI edit requests, when present.
+6. `.giqo/plans/<plan-id>/tasks.json`, when present.
 
 ## Writes
 
 1. Approved docs.
 2. Approved `ui-review/` artifacts.
 3. Application source only when the apply boundary permits it.
+4. `.giqo/plans/<plan-id>/tasks.json` task status and evidence updates.
 
 ## Behavior
 
 1. Confirm the active run and target outputs.
 2. Compare generated outputs with existing files.
 3. Refuse source edits unless the apply boundary is satisfied.
-4. When applying a saved UI edit request, update its status to `running` in `.giqo/ui-review/<screen>/` before modifying docs, artifacts, or source.
-5. Write approved docs and review assets.
-6. For allowed source edits, make only the named changes.
-7. Run the checks named in the plan when source edits occur.
-8. Mark each attempted UI request `applied` or `failed` after the work and preserve the reason for failures.
-9. If the user asks to apply UI edits but no saved edit requests exist, stop with a state report instead of making speculative changes.
+4. When applying a Task, update its status to `running` before modifying docs, artifacts, or source.
+5. When applying a saved UI edit request, update its status to `running` in `.giqo/ui-review/<screen>/` before modifying docs, artifacts, or source.
+6. Write approved docs and review assets.
+7. For allowed source edits, make only the named changes.
+8. Run the checks named in the plan when source edits occur.
+9. Record changed files, verification, manual QA, and notes in task evidence.
+10. Mark each attempted Task and UI request `applied` or `failed` after the work and preserve the reason for failures.
+11. If the user asks to apply UI edits or tasks but no saved items exist, stop with a state report instead of making speculative changes.
 
 ## Completion report
 
-Report files written, files skipped, checks run, and any apply items left for a human or implementation agent.
+Report files written, files skipped, task status changes, checks run, and any apply items left for a human or implementation agent.
 
 If there is nothing to apply, say so directly, for example: `No saved UI edit requests were found, so no UI changes were applied.`

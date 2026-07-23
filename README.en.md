@@ -28,6 +28,7 @@ GIQO does not require a polished spec. It reads rough project material and creat
 - Record assumptions when source material is incomplete
 - Summarize product flows, UI/UX, data model, API, and architecture
 - Produce an ordered work plan for an implementation agent
+- Track implementation work as Plan/Phase/Task state with evidence
 - Let reviewers select UI targets and save edit requests from the browser
 
 It does not blindly generate every possible document. Output is selected from the project context.
@@ -38,8 +39,9 @@ It does not blindly generate every possible document. Output is selected from th
 rough inputs / existing repo / screenshots / review notes
 → GIQO classifies inputs and asks only necessary questions
 → selected docs are created or updated
+→ implementation work is structured as Plans, Phases, and Tasks
 → Visual Review saves UI requests against stable targets
-→ ingest/apply steps reflect saved requests in docs or implementation work
+→ ingest/apply steps reflect saved requests and Tasks in docs or implementation work
 ```
 
 Common outputs:
@@ -106,7 +108,19 @@ After saving requests in Visual Review, ask:
 /giqo-skill Check the UI requests saved under .giqo and apply the actionable ones.
 ```
 
-GIQO reads saved requests and updates status through `saved → running → applied/failed` while reflecting the work in docs or UI implementation.
+GIQO reads saved requests and Tasks, then updates status through `saved → running → applied/failed` while reflecting the work in docs or UI implementation.
+
+### Inspect work progress
+
+Ask for a Plan Dashboard when you need a read-only progress view:
+
+```text
+/giqo-skill Show the current Plan/Phase/Task progress as a read-only dashboard.
+```
+
+The dashboard reads `.giqo/plans/<plan-id>/plan.json` and `tasks.json`, then shows columns per Plan, Phase markers, and Task status. It does not edit state directly; state changes go through `/giqo-skill plan`, `/giqo-skill ingest`, or `/giqo-skill apply`.
+
+Agents use `scripts/generate-plan-dashboard.mjs` to write dashboard files. The generator embeds the current Plan/Task state in `dashboard.html` and copies `dashboard.css` plus `dashboard.js` beside it.
 
 ## Visual Review Mode
 
@@ -158,17 +172,24 @@ In environments like OpenCode, this skill usually appears as the native `/giqo-s
 |---|---|---|
 | `/giqo-skill init` | Create or refresh `.giqo/` workspace | Current project state and storage location |
 | `/giqo-skill plan` | Analyze inputs and create selected docs | Selected docs, questions, assumptions, work plan |
-| `/giqo-skill ui` | Create or refresh UI docs and Visual Review | Reviewable screen or actual-screen connection |
+| `/giqo-skill ui` | Create or refresh UI docs, Visual Review, and Plan Dashboard | Reviewable screen, actual-screen connection, or dashboard path |
 | `/giqo-skill ingest` | Ingest saved comments, requests, or new materials | Updated docs and remaining questions |
-| `/giqo-skill apply` | Apply approved plans or saved UI requests | Progress status and applied/failed results |
+| `/giqo-skill apply` | Apply approved plans, Tasks, or saved UI requests | Progress status and applied/failed results |
 
 Exact subwords are optional. Put the natural-language request after `/giqo-skill`, and GIQO routes it to the closest workflow.
 
+Agents use `scripts/update-plan-state.mjs` to write structured Plan/Phase/Task input into real state files. The script only creates or updates `.giqo/plans/<plan-id>/plan.json` and `tasks.json`; it does not edit application source.
+
+Agents use `scripts/link-review-requests.mjs` when saved Visual Review requests should become Task sources. The script links Task `sourceReviewRequests` and request `linkedTask`; it does not mark requests applied or edit source code.
+
 The Visual Review browser UI only exposes `Status`, `Target`, `Refresh`, `Hide/Show feedback`, and saved-card `Edit/Delete`. Users do not need to handle internal storage files, iframe proxy details, or the Node launcher directly.
+
+The Plan Dashboard is read-only. When Task state must change, the agent reads Plan/Task state, proposes the needed action, and updates state only after the decision is clear.
 
 ## Existing-project principles
 
 - GIQO uses `.giqo/` as the workspace for inputs, runs, and UI review state.
+- GIQO uses `.giqo/plans/` for Plan/Phase/Task state and dashboard artifacts.
 - Application source files stay untouched until an apply step is explicitly allowed.
 - If no saved UI requests exist, GIQO reports that state instead of pretending to work.
 - The handoff is complete only when a builder can tell what to build, what to skip, and where to start.
@@ -202,5 +223,7 @@ GIQO-skill/
 ├── scripts/
 ├── references/
 ├── templates/
+│   ├── plan-dashboard/
+│   └── state/
 └── git-readme/
 ```

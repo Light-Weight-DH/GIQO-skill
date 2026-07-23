@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://giqo.local/schemas/plan.schema.json",
+  "title": "GIQO Plan State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "docsPath", "createdAt", "updatedAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^plan-[a-z0-9][a-z0-9-]*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string"
+    },
+    "parentPlanId": {
+      "type": ["string", "null"],
+      "pattern": "^plan-[a-z0-9][a-z0-9-]*$"
+    },
+    "docsPath": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceRunId": {
+      "type": ["string", "null"]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

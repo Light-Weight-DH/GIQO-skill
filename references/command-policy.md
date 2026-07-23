@@ -4,13 +4,15 @@ GIQO commands are planning commands first. They prepare, update, or apply docume
 
 ## Command set
 
-| Command | Purpose | Primary output |
+| Workflow | Purpose | Primary output |
 |---|---|---|
-| `/giqo-init` | Create or update `.giqo` workspace state | `.giqo/workspace.json` |
-| `/giqo-plan` | Analyze inputs and produce selected docs | Design package |
-| `/giqo-ui` | Create or refresh reviewable UI artifacts | `ui-review/` files and `06_UI_UX_SPEC.md` |
-| `/giqo-apply` | Write approved GIQO outputs to the project | Docs, review assets, or allowed source edits |
-| `/giqo-ingest` | Read new evidence, comments, or corrections | Updated ledger and next plan delta |
+| `/giqo-skill init` | Create or update `.giqo` workspace state | `.giqo/workspace.json` |
+| `/giqo-skill plan` | Analyze inputs and produce selected docs and task state | Design package and `.giqo/plans/<plan-id>/tasks.json` |
+| `/giqo-skill ui` | Create or refresh reviewable UI or dashboard artifacts | `ui-review/` files, `06_UI_UX_SPEC.md`, or Plan Dashboard |
+| `/giqo-skill apply` | Write approved GIQO outputs to the project | Docs, review assets, task evidence, or allowed source edits |
+| `/giqo-skill ingest` | Read new evidence, comments, corrections, or doc changes | Updated ledger, task reconciliation proposal, and next plan delta |
+
+Legacy workflow names such as `/giqo-plan` may appear in older docs or environments. Treat them as aliases for the `/giqo-skill` subword flow.
 
 ## Shared command contract
 
@@ -36,10 +38,29 @@ Rules:
 3. Do not make `.giqo` the only copy of user facing docs.
 4. Treat `.giqo/workspace.json` as state, not as the final plan.
 5. In brownfield mode, record repo facts before proposing file changes.
+6. Store implementation planning state under `.giqo/plans/<plan-id>/` when Plan/Phase/Task tracking is active.
+
+## Plan and task boundary
+
+Use `references/plan-task-model.md` when a command creates, branches, reconciles, applies, or visualizes implementation tasks.
+
+Command responsibilities:
+
+| Workflow | Plan/Task responsibility |
+|---|---|
+| `/giqo-skill init` | Prepare `.giqo/plans/` and keep workspace defaults traceable |
+| `/giqo-skill plan` | Create or branch Plans, generate selected docs, and draft phases/tasks |
+| `/giqo-skill ingest` | Detect document or evidence drift and ask before reconciling non-terminal tasks |
+| `/giqo-skill apply` | Move attempted tasks through `running` to `applied` or `failed`, with evidence |
+| `/giqo-skill ui` | Generate read-only Visual Review or Plan Dashboard artifacts |
+
+Plan and Phase status are derived from Task status. Commands must not write separate Plan or Phase status fields.
+
+If a Phase has `running` tasks, no command may rewrite that Phase's task list without an explicit user decision.
 
 ## Apply boundary
 
-`/giqo-plan`, `/giqo-ui`, and `/giqo-ingest` propose changes unless their command spec says they write generated artifacts. `/giqo-apply` is the command that turns approved proposals into project files.
+`/giqo-skill plan`, `/giqo-skill ui`, and `/giqo-skill ingest` propose changes unless their command spec says they write generated artifacts. `/giqo-skill apply` is the command that turns approved proposals into project files.
 
 Source edits are off by default. They are allowed only when all are true:
 

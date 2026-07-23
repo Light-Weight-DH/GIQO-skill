@@ -31,6 +31,7 @@ Inputs may include:
 - existing project files
 - saved review comments
 - saved change requests
+- existing Plan/Phase/Task state under `.giqo/plans/`
 - partial plans
 - user corrections
 
@@ -130,17 +131,36 @@ When GIQO runs inside an existing repository, treat the repo as source material 
 
 Brownfield output must name existing behavior to preserve, likely affected files, regression checks, and unresolved repo assumptions before implementation starts.
 
+## Plan / Phase / Task tracking
+
+Use `references/plan-task-model.md` when implementation work must be tracked beyond a single document package.
+
+Persistent task state lives under `.giqo/plans/<plan-id>/`:
+
+```text
+plan.json
+tasks.json
+docs/
+dashboard.html
+```
+
+Plan is the design context, Phase is a logical step, and Task is the actionable unit. Only Task stores status. Plan and Phase status are derived from child tasks.
+
+Allowed Task statuses are `saved`, `running`, `applied`, `failed`, `stashed`, and `cancelled`.
+
+When docs or evidence change an existing Phase, inspect non-terminal tasks before rewriting them. If the task list no longer fits, ask the user whether to keep, update, stash, cancel, or create a new Plan. Never rewrite a Phase with `running` tasks without explicit user confirmation.
+
 ## Command set
 
-GIQO supports command-style workflows documented under `commands/`:
+GIQO supports command-style workflows documented under `commands/`. OpenCode may expose the native command as `/giqo-skill`; subwords like `/giqo-skill plan` map to the same workflow units:
 
-- `/giqo-init` - create or update `.giqo` workspace state.
-- `/giqo-plan` - analyze inputs and create selected docs.
-- `/giqo-ui` - create or refresh UI review/edit artifacts.
-- `/giqo-apply` - apply approved docs, review assets, or explicitly allowed source changes.
-- `/giqo-ingest` - ingest comments, change requests, user corrections, or new evidence.
+- `/giqo-skill init` - create or update `.giqo` workspace state.
+- `/giqo-skill plan` - analyze inputs, create or branch Plans, and create selected docs/tasks.
+- `/giqo-skill ui` - create or refresh UI review/edit artifacts or read-only Plan Dashboards.
+- `/giqo-skill apply` - apply approved docs, review assets, tasks, or explicitly allowed source changes.
+- `/giqo-skill ingest` - ingest comments, change requests, user corrections, document changes, or new evidence.
 
-Use `references/command-policy.md`, `references/existing-project-mode.md`, `references/ui-edit-mode.md`, and `references/comment-lifecycle.md` when these flows are active.
+Use `references/command-policy.md`, `references/existing-project-mode.md`, `references/plan-task-model.md`, `references/ui-edit-mode.md`, and `references/comment-lifecycle.md` when these flows are active.
 
 ## Output quality bar
 
@@ -155,5 +175,6 @@ Every generated package must answer:
 - Which files should an implementation agent read first?
 - Which diagrams or review artifacts are authoritative?
 - Are there unresolved saved, running, or failed UI comments/change requests?
+- Are there saved, running, failed, stashed, or cancelled tasks that change the recommended next step?
 
 If those questions are not answered, continue refining before returning.

@@ -129,3 +129,17 @@ Do not use task evidence to store secrets, large logs, or full diffs.
 ## Dashboard policy
 
 The Plan Dashboard is read-only. It renders `.giqo/plans/<plan-id>/plan.json` and `tasks.json` so users can see progress across Plans, Phases, and Tasks. Users must not edit task state directly in the dashboard.
+
+Generate a dashboard with:
+
+```bash
+node scripts/generate-plan-dashboard.mjs --plan-id <plan-id>
+```
+
+For a cross-plan view, use:
+
+```bash
+node scripts/generate-plan-dashboard.mjs --all --output-dir .giqo/plans/dashboard
+```
+
+The generator embeds the current Plan/Task state into `dashboard.html` and copies `dashboard.css` plus `dashboard.js` beside it. It is a read-only artifact generator; it must not change `plan.json` or `tasks.json`.

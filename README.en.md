@@ -120,6 +120,8 @@ Ask for a Plan Dashboard when you need a read-only progress view:
 
 The dashboard reads `.giqo/plans/<plan-id>/plan.json` and `tasks.json`, then shows columns per Plan, Phase markers, and Task status. It does not edit state directly; state changes go through `/giqo-skill plan`, `/giqo-skill ingest`, or `/giqo-skill apply`.
 
+Agents use `scripts/generate-plan-dashboard.mjs` to write dashboard files. The generator embeds the current Plan/Task state in `dashboard.html` and copies `dashboard.css` plus `dashboard.js` beside it.
+
 ## Visual Review Mode
 
 Visual Review lets reviewers select a component or region on a generated mockup or real app screen, then save an edit request against that target, similar to selecting components in Claude Design.

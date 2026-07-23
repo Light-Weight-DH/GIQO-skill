@@ -120,6 +120,8 @@ Plan Dashboard가 필요하면 이렇게 요청합니다.
 
 Dashboard는 `.giqo/plans/<plan-id>/plan.json`과 `tasks.json`을 읽어 Plan별 컬럼, Phase marker, Task 상태를 보여줍니다. 상태는 dashboard에서 직접 수정하지 않고 `/giqo-skill plan`, `/giqo-skill ingest`, `/giqo-skill apply` 흐름으로만 갱신합니다.
 
+Agent가 dashboard 파일을 만들 때는 `scripts/generate-plan-dashboard.mjs`를 사용합니다. 이 스크립트는 현재 Plan/Task 상태를 `dashboard.html`에 포함하고 `dashboard.css`, `dashboard.js`를 함께 복사합니다.
+
 ## Visual Review Mode
 
 Visual Review는 UI 작업 중 실제 화면이나 생성된 목업에서 컴포넌트/영역을 선택하고, Claude Design처럼 해당 target에 수정 요청을 남기게 해주는 모드입니다.

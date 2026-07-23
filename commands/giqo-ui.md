@@ -33,7 +33,7 @@ Create or update UI planning docs, browser review artifacts, and read-only Plan 
 1. `06_UI_UX_SPEC.md` when UI decisions change.
 2. `ui-review/` artifacts based on `templates/visual-review/`.
 3. `.giqo/ui-review/<screen>/` for browser-saved review state.
-4. `.giqo/plans/<plan-id>/dashboard.html` based on `templates/plan-dashboard/`.
+4. `.giqo/plans/<plan-id>/dashboard.html` plus copied `dashboard.css` and `dashboard.js` based on `templates/plan-dashboard/`.
 
 It must not edit application source.
 
@@ -46,7 +46,7 @@ It must not edit application source.
 5. Update implementation tasks for accepted UI changes.
 6. In brownfield mode, name affected existing screens and states.
 7. If the user asks to continue UI edits but no saved comments or edit requests exist, report the current state instead of inventing work.
-8. When dashboard output is requested, render Plan, Phase, and Task progress read-only from `.giqo/plans/<plan-id>/plan.json` and `tasks.json`.
+8. When dashboard output is requested, run `scripts/generate-plan-dashboard.mjs` to render Plan, Phase, and Task progress read-only from `.giqo/plans/<plan-id>/plan.json` and `tasks.json`.
 9. Do not allow dashboard edits to mutate task state; use `/giqo-skill ingest`, `/giqo-skill plan`, or `/giqo-skill apply` for state changes.
 
 ## Completion report

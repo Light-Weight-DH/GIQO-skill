@@ -1,222 +1,162 @@
-const STATUS_ORDER = ["running", "failed", "saved", "stashed", "applied", "cancelled"];
-const OPEN_STATUSES = new Set(["saved", "running", "failed", "stashed"]);
+const STATUSES = ["applied", "running", "saved", "stashed", "failed", "cancelled"];
+const OPEN = new Set(["saved", "running", "failed", "stashed"]);
 
-const sampleState = {
-  plans: [
-    {
-      plan: {
-        id: "plan-sample-dashboard",
-        title: "Sample Plan Dashboard",
-        summary: "Replace this sample state by generating dashboard.html next to real plan.json and tasks.json.",
-        docsPath: ".giqo/plans/plan-sample-dashboard/docs",
-        createdAt: "2026-07-23T00:00:00.000Z",
-        updatedAt: "2026-07-23T00:00:00.000Z"
-      },
-      taskState: {
-        phases: [
-          { id: "phase-model", title: "Define state model", summary: "Plan, Phase, Task, and rollup rules.", order: 0 },
-          { id: "phase-dashboard", title: "Render progress", summary: "Read-only dashboard generated from JSON state.", order: 1 }
-        ],
-        tasks: [
-          { id: "task-model-doc", phaseId: "phase-model", title: "Write Plan/Task policy", status: "applied", summary: "Policy is documented in references/plan-task-model.md." },
-          { id: "task-schema", phaseId: "phase-model", title: "Define JSON schemas", status: "running", summary: "Schemas describe plan.json and tasks.json." },
-          { id: "task-dashboard", phaseId: "phase-dashboard", title: "Generate dashboard artifact", status: "saved", summary: "Static HTML/CSS/JS renders Plans, Phases, and Tasks." }
-        ]
-      }
-    }
-  ]
-};
+const sampleState = { plans: [{ plan: { id: "plan-ui-components", title: "UI componentization test plan", summary: "Plan for splitting the current board UI into reusable components while preserving behavior.", updatedAt: "2026-07-23T00:00:00.000Z" }, taskState: { phases: [
+  { id: "phase-boundary", title: "UI boundary survey", summary: "Identify sections, state flow, and style groups before moving markup.", order: 0 },
+  { id: "phase-layout", title: "Separate static layout components", summary: "Split stable page sections into reusable HTML modules.", order: 1 },
+  { id: "phase-state", title: "Separate state logic", summary: "Move board state, filters, and data flow into focused modules.", order: 2 }
+], tasks: [
+  { id: "task-map-board", phaseId: "phase-boundary", title: "Map current board sections and interaction states", status: "applied", summary: "Record board list, filters, detail panel, compose form, and post states before splitting.", sourceDocs: ["05_IMPLEMENTATION_PLAN.md", "03_CURRENT_UI_BOUNDARY_MAP.md"], targetFiles: ["index.html", "app.js", "styles.css"], sourceReviewRequests: ["board-main", "hero-section"], evidence: { changedFiles: ["index.html", "app.js", "styles.css"], verification: ["2 passed"], manualQa: [] }, updatedAt: "2026-07-23T00:02:00.000Z" },
+  { id: "task-contracts", phaseId: "phase-boundary", title: "Define component contracts and preserved behavior", status: "saved", summary: "Describe component responsibilities and interaction contracts before extracting code.", sourceDocs: ["05_IMPLEMENTATION_PLAN.md"], targetFiles: ["app.js"], evidence: { changedFiles: [], verification: [], manualQa: [] }, updatedAt: "2026-07-23T00:10:00.000Z" },
+  { id: "task-layout", phaseId: "phase-layout", title: "Extract static layout components", status: "saved", summary: "Move stable shells without changing behavior.", updatedAt: "2026-07-22T00:00:00.000Z" }
+] } }] };
 
-const board = document.querySelector("#gqo-board");
-const statusMessage = document.querySelector("#gqo-status");
-const refreshButton = document.querySelector("#gqo-refresh");
+const stateRef = { plans: [], activePlan: 0, activePhase: "", activeTask: "" };
+const $ = (selector) => document.querySelector(selector);
 
-refreshButton?.addEventListener("click", () => {
-  void loadDashboard();
-});
+$("#gqo-refresh")?.addEventListener("click", () => loadDashboard({ fresh: true }));
+void loadDashboard({ fresh: false });
 
-void loadDashboard();
-
-async function loadDashboard() {
-  setStatus("Loading dashboard state…");
-  const state = await readEmbeddedState();
-  renderDashboard(state);
-  setStatus("Dashboard loaded from read-only state.");
+async function loadDashboard({ fresh }) {
+  setText("#gqo-status", "Loading dashboard state…");
+  const state = fresh ? await readFreshState() : readEmbeddedState();
+  stateRef.plans = Array.isArray(state.plans) ? state.plans : [];
+  stateRef.activePlan = Math.min(stateRef.activePlan, Math.max(stateRef.plans.length - 1, 0));
+  setDefaultSelection();
+  render();
+  setText("#gqo-status", "Updated just now");
 }
 
-async function readEmbeddedState() {
+function readEmbeddedState() {
   const embedded = document.querySelector('script[type="application/json"][data-gqo-dashboard-state]');
-  if (!embedded?.textContent?.trim()) {
-    return sampleState;
-  }
+  if (!embedded?.textContent?.trim()) return sampleState;
+  try { return JSON.parse(embedded.textContent); } catch { return sampleState; }
+}
 
+async function readFreshState() {
   try {
-    return JSON.parse(embedded.textContent);
-  } catch (error) {
-    setStatus(`Could not parse embedded dashboard state: ${error instanceof Error ? error.message : "unknown error"}`);
-    return sampleState;
+    const [planResponse, tasksResponse] = await Promise.all([fetch("plan.json", { cache: "no-store" }), fetch("tasks.json", { cache: "no-store" })]);
+    if (!planResponse.ok || !tasksResponse.ok) return readEmbeddedState();
+    const [plan, taskState] = await Promise.all([planResponse.json(), tasksResponse.json()]);
+    return { plans: [{ plan, taskState }] };
+  } catch {
+    return readEmbeddedState();
   }
 }
 
-function renderDashboard(state) {
-  const plans = Array.isArray(state.plans) ? state.plans : [];
-  board.replaceChildren(...plans.map(renderPlan));
-  updateSummary(plans);
-
-  if (plans.length === 0) {
-    board.append(createElement("div", "empty-state", "No Plans found. Run /giqo-skill plan before generating a dashboard."));
-  }
+function setDefaultSelection() {
+  const phases = currentPhases();
+  if (!phases.some((phase) => phase.id === stateRef.activePhase)) stateRef.activePhase = phases[0]?.id ?? "";
+  const tasks = currentTasks().filter((task) => task.phaseId === stateRef.activePhase);
+  if (!tasks.some((task) => task.id === stateRef.activeTask)) stateRef.activeTask = tasks[0]?.id ?? "";
 }
 
-function renderPlan(entry) {
-  const plan = entry.plan ?? {};
-  const taskState = entry.taskState ?? {};
-  const phases = sortByOrder(Array.isArray(taskState.phases) ? taskState.phases : []);
-  const tasks = Array.isArray(taskState.tasks) ? taskState.tasks : [];
-  const planColumn = createElement("article", "plan-column");
-  const titleRow = createElement("div", "plan-title-row");
-  titleRow.append(
-    createElement("h2", "", plan.title || plan.id || "Untitled Plan"),
-    renderStatusPill(rollupStatus(tasks))
-  );
-
-  planColumn.append(
-    titleRow,
-    createElement("p", "plan-summary", plan.summary || plan.docsPath || "No plan summary recorded."),
-    renderPhases(phases, tasks)
-  );
-
-  return planColumn;
+function render() {
+  renderPlans();
+  renderHeader();
+  renderSummary();
+  renderPhases();
+  renderTasks();
+  renderDetail();
 }
 
-function renderPhases(phases, tasks) {
-  const phaseList = createElement("div", "phase-list");
-  if (phases.length === 0) {
-    phaseList.append(createElement("div", "empty-state", "No phases recorded."));
-    return phaseList;
-  }
+function renderPlans() {
+  const list = $("#gqo-plan-list");
+  list.replaceChildren(...stateRef.plans.map((entry, index) => {
+    const tasks = entry.taskState?.tasks ?? [];
+    const applied = countStatus(tasks, "applied");
+    const percent = percentOf(applied, tasks.length);
+    const planStatus = planStatusOf(tasks);
+    const button = el("button", `plan-card${index === stateRef.activePlan ? " is-active" : ""}`);
+    button.type = "button";
+    button.dataset.status = planStatus;
+    button.append(row("plan-name", [el("span", "plan-dot"), el("span", "", entry.plan?.title ?? entry.plan?.id ?? "Untitled Plan")]), el("p", "plan-meta", `${applied} / ${tasks.length} applied`), progress(percent, "bar", planStatus), row("plan-progress", [el("span", "", updatedLabel(entry.plan?.updatedAt)), el("span", "", `${percent}%`)]));
+    button.addEventListener("click", () => { stateRef.activePlan = index; stateRef.activePhase = ""; stateRef.activeTask = ""; setDefaultSelection(); render(); });
+    return button;
+  }));
+}
 
-  for (const phase of phases) {
+function renderHeader() {
+  const plan = currentPlan().plan ?? {};
+  setText("#gqo-title", plan.title ?? "Plans, phases, and tasks");
+  setText("#gqo-subtitle", plan.summary ?? "Read-only progress view generated from plan.json and tasks.json.");
+}
+
+function renderSummary() {
+  const tasks = currentTasks();
+  const applied = countStatus(tasks, "applied");
+  setText("#gqo-progress-label", `${applied} / ${tasks.length} applied`);
+  setText("#gqo-progress-rate", `${percentOf(applied, tasks.length)}%`);
+  $("#gqo-progress-bar").style.width = `${percentOf(applied, tasks.length)}%`;
+  for (const status of STATUSES) setText(`#gqo-${status}-count`, String(countStatus(tasks, status)));
+}
+
+function renderPhases() {
+  const container = $("#gqo-phases");
+  const tasks = currentTasks();
+  container.replaceChildren(...currentPhases().map((phase, index) => {
     const phaseTasks = tasks.filter((task) => task.phaseId === phase.id);
-    const phaseCard = createElement("section", "phase-card");
-    const header = createElement("div", "phase-header");
-    header.append(createElement("h3", "", phase.title || phase.id), renderStatusPill(rollupStatus(phaseTasks)));
-    phaseCard.append(header, createElement("p", "phase-summary", phase.summary || "No phase summary recorded."), renderTasks(phaseTasks));
-    phaseList.append(phaseCard);
-  }
-
-  return phaseList;
+    const applied = countStatus(phaseTasks, "applied");
+    const card = el("article", `phase-card${phase.id === stateRef.activePhase ? " is-active" : ""}`);
+    card.append(row("phase-top", [el("span", "chevron", phase.id === stateRef.activePhase ? "⌄" : "›"), el("span", "phase-title", `${index + 1}. ${phase.title ?? phase.id}`), el("span", "phase-rate", `${applied} / ${phaseTasks.length} applied`)]), el("p", "phase-summary", phase.summary ?? "No phase summary recorded."), progress(percentOf(applied, phaseTasks.length), "bar"));
+    if (phase.id === stateRef.activePhase) card.append(renderMiniTasks(phaseTasks));
+    card.addEventListener("click", () => { const isOpen = stateRef.activePhase === phase.id; stateRef.activePhase = isOpen ? "" : phase.id; stateRef.activeTask = isOpen ? "" : phaseTasks[0]?.id ?? ""; render(); });
+    return card;
+  }));
 }
 
-function renderTasks(tasks) {
-  const taskList = createElement("div", "task-list");
-  if (tasks.length === 0) {
-    taskList.append(createElement("div", "empty-state", "No tasks in this phase."));
-    return taskList;
-  }
-
-  for (const task of tasks) {
-    const card = createElement("article", "task-card");
-    const meta = createElement("div", "task-meta");
-    meta.append(createElement("h4", "", task.title || task.id), renderStatusPill(task.status));
-    card.append(meta);
-
-    if (task.summary) {
-      card.append(createElement("p", "task-summary", task.summary));
-    }
-
-    const footnotes = [
-      formatList("Docs", task.sourceDocs),
-      formatList("Targets", task.targetFiles),
-      formatList("Review", task.sourceReviewRequests)
-    ].filter(Boolean);
-
-    for (const footnote of footnotes) {
-      card.append(createElement("p", "task-footnote", footnote));
-    }
-
-    taskList.append(card);
-  }
-
-  return taskList;
+function renderMiniTasks(tasks) {
+  const wrap = el("div", "phase-preview");
+  wrap.append(...tasks.slice(0, 3).map((task) => row("mini-task", [statusDot(task.status), el("strong", "", task.title ?? task.id), statusPill(task.status)])));
+  return wrap;
 }
 
-function renderStatusPill(status = "saved") {
-  const normalized = STATUS_ORDER.includes(status) ? status : "saved";
-  const pill = createElement("span", "status-pill", normalized);
-  pill.dataset.status = normalized;
-  return pill;
-}
-
-function rollupStatus(tasks) {
-  if (!tasks.length) {
-    return "saved";
-  }
-
-  if (tasks.some((task) => task.status === "running")) {
-    return "running";
-  }
-
-  if (tasks.some((task) => task.status === "failed")) {
-    return "failed";
-  }
-
-  if (tasks.some((task) => task.status === "saved")) {
-    return "saved";
-  }
-
-  if (tasks.every((task) => task.status === "cancelled")) {
-    return "cancelled";
-  }
-
-  if (tasks.every((task) => task.status === "stashed" || task.status === "cancelled")) {
-    return "stashed";
-  }
-
-  if (tasks.some((task) => task.status === "applied")) {
-    return "applied";
-  }
-
-  return "saved";
-}
-
-function updateSummary(plans) {
-  const phases = plans.flatMap((entry) => entry.taskState?.phases ?? []);
-  const tasks = plans.flatMap((entry) => entry.taskState?.tasks ?? []);
-  setText("#gqo-plan-count", String(plans.length));
-  setText("#gqo-phase-count", String(phases.length));
+function renderTasks() {
+  const tasks = currentTasks().filter((task) => task.phaseId === stateRef.activePhase);
+  setText("#gqo-task-heading", stateRef.activePhase ? `Tasks in ${currentPhase()?.title ?? "selected phase"}` : "Tasks");
   setText("#gqo-task-count", String(tasks.length));
-  setText("#gqo-open-count", String(tasks.filter((task) => OPEN_STATUSES.has(task.status)).length));
+  $("#gqo-tasks").replaceChildren(...tasks.map((task) => {
+    const item = row(`task-row task-item${task.id === stateRef.activeTask ? " is-selected" : ""}`, [statusDot(task.status), el("span", "task-title", task.title ?? task.id), el("span", "task-updated", updatedLabel(task.updatedAt))]);
+    item.addEventListener("click", () => { stateRef.activeTask = task.id; renderTasks(); renderDetail(); });
+    return item;
+  }));
 }
 
-function setText(selector, value) {
-  const element = document.querySelector(selector);
-  if (element) {
-    element.textContent = value;
-  }
+function renderDetail() {
+  const task = currentTasks().find((candidate) => candidate.id === stateRef.activeTask);
+  const box = $("#gqo-detail");
+  if (!task) { box.replaceChildren(el("div", "empty-state", "Select a task to inspect details.")); return; }
+  box.replaceChildren(el("article", "detail-card", [row("detail-head", [el("h2", "", task.title ?? task.id), statusPill(task.status)]), el("p", "detail-summary", task.summary ?? "No task summary recorded."), detailLine("Phase", [currentPhase()?.title ?? task.phaseId]), detailLine("Source Documents", task.sourceDocs), detailLine("Target Files", task.targetFiles), evidenceBlock(task.evidence), detailLine("Related Visual Review", task.sourceReviewRequests)]));
 }
 
-function setStatus(message) {
-  if (statusMessage) {
-    statusMessage.textContent = message;
-  }
+function evidenceBlock(evidence = {}) {
+  const rows = [["Changed files", evidence.changedFiles?.length ?? 0], ["Verification", evidence.verification?.[0] ?? "Not recorded"], ["Manual QA", evidence.manualQa?.[0] ?? "Not recorded"]];
+  return section("Evidence", rows.map(([label, value]) => row("evidence-row", [el("span", "", label), el("strong", "", String(value))])));
 }
 
-function sortByOrder(items) {
-  return [...items].sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
+function detailLine(title, values = []) {
+  const list = Array.isArray(values) ? values : [values];
+  return section(title, [el("div", "link-list", list.length ? list.map((value) => el("span", "", String(value))) : [el("span", "", "Not recorded")])]);
 }
 
-function formatList(label, values) {
-  return Array.isArray(values) && values.length > 0 ? `${label}: ${values.join(", ")}` : "";
+function currentPlan() { return stateRef.plans[stateRef.activePlan] ?? {}; }
+function currentPhases() { return [...(currentPlan().taskState?.phases ?? [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)); }
+function currentTasks() { return currentPlan().taskState?.tasks ?? []; }
+function currentPhase() { return currentPhases().find((phase) => phase.id === stateRef.activePhase); }
+function countStatus(tasks, status) { return tasks.filter((task) => task.status === status).length; }
+function planStatusOf(tasks) {
+  if (tasks.length === 0 || tasks.every((task) => task.status === "saved")) return "not-started";
+  if (tasks.some((task) => task.status === "failed" || task.status === "stashed")) return "blocked";
+  if (tasks.some((task) => task.status === "running")) return "running";
+  if (tasks.every((task) => task.status === "applied")) return "complete";
+  return "running";
 }
-
-function createElement(tagName, className = "", text = "") {
-  const element = document.createElement(tagName);
-  if (className) {
-    element.className = className;
-  }
-  if (text) {
-    element.textContent = text;
-  }
-  return element;
-}
+function percentOf(value, total) { return total > 0 ? Math.round((value / total) * 100) : 0; }
+function updatedLabel(value) { return value ? "Updated recently" : "Updated unknown"; }
+function setText(selector, value) { const node = $(selector); if (node) node.textContent = value; }
+function progress(percent, className, status = "") { const node = el("div", className); if (status) node.dataset.status = status; const bar = el("i"); bar.style.width = `${percent}%`; node.append(bar); return node; }
+function statusDot(status = "saved") { const node = el("span", "status-dot"); node.dataset.status = status; return node; }
+function statusPill(status = "saved") { const node = el("span", "status-pill", status); node.dataset.status = status; return node; }
+function section(title, children) { return el("section", "detail-section", [el("h3", "", title), ...children]); }
+function row(className, children) { return el("div", className, children); }
+function el(tag, className = "", content = "") { const node = document.createElement(tag); if (className) node.className = className; if (Array.isArray(content)) node.append(...content); else if (content) node.textContent = content; return node; }

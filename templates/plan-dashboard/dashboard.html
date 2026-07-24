@@ -8,41 +8,59 @@
     <link rel="stylesheet" href="dashboard.css">
   </head>
   <body>
-    <main class="dashboard-shell">
-      <header class="dashboard-header">
-        <div>
-          <p class="eyebrow">GIQO Plan Dashboard</p>
-          <h1>Plans, phases, and tasks</h1>
-          <p class="subtitle">Read-only progress view generated from <code>plan.json</code> and <code>tasks.json</code>.</p>
-        </div>
-        <div class="header-actions" aria-label="Dashboard actions">
-          <button id="gqo-refresh" type="button">Refresh</button>
+    <div class="app-shell">
+      <aside class="plan-rail" aria-label="Plans">
+        <header class="brand-row">
+          <strong>GIQO Dashboard</strong>
           <span class="readonly-badge">Read-only</span>
-        </div>
-      </header>
+        </header>
+        <section>
+          <h2>Plans</h2>
+          <div id="gqo-plan-list" class="plan-list"></div>
+        </section>
+        <button id="gqo-refresh" class="secondary-action" type="button">Refresh state</button>
+      </aside>
 
-      <section class="summary-grid" aria-label="Task summary">
-        <article>
-          <span class="summary-label">Plans</span>
-          <strong id="gqo-plan-count">0</strong>
-        </article>
-        <article>
-          <span class="summary-label">Phases</span>
-          <strong id="gqo-phase-count">0</strong>
-        </article>
-        <article>
-          <span class="summary-label">Tasks</span>
-          <strong id="gqo-task-count">0</strong>
-        </article>
-        <article>
-          <span class="summary-label">Open work</span>
-          <strong id="gqo-open-count">0</strong>
-        </article>
-      </section>
+      <main class="workspace">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">Plan progress</p>
+            <h1 id="gqo-title">Plans, phases, and tasks</h1>
+            <p id="gqo-subtitle" class="subtitle">Read-only progress view generated from <code>plan.json</code> and <code>tasks.json</code>.</p>
+          </div>
+          <p id="gqo-status" class="updated-text" role="status">Loading dashboard state…</p>
+        </header>
 
-      <section id="gqo-status" class="status-message" role="status">Loading dashboard state…</section>
-      <section id="gqo-board" class="plan-board" aria-label="Plan progress board"></section>
-    </main>
+        <section class="summary-grid" aria-label="Task summary">
+          <article><span>Progress</span><strong id="gqo-progress-label">0 / 0 applied</strong><div class="meter"><i id="gqo-progress-bar"></i></div><small id="gqo-progress-rate">0%</small></article>
+          <article data-status="applied"><span>Applied</span><strong id="gqo-applied-count">0</strong></article>
+          <article data-status="running"><span>Running</span><strong id="gqo-running-count">0</strong></article>
+          <article data-status="saved"><span>Saved</span><strong id="gqo-saved-count">0</strong></article>
+          <article data-status="stashed"><span>Stashed</span><strong id="gqo-stashed-count">0</strong></article>
+          <article data-status="failed"><span>Failed</span><strong id="gqo-failed-count">0</strong></article>
+          <article data-status="cancelled"><span>Cancelled</span><strong id="gqo-cancelled-count">0</strong></article>
+        </section>
+
+        <section class="work-grid">
+          <section class="panel phases-panel" aria-label="Phases">
+            <header class="panel-header"><h2>Phases</h2></header>
+            <div id="gqo-phases" class="phase-stack"></div>
+          </section>
+
+          <section class="panel tasks-panel" aria-label="Tasks">
+            <header class="panel-header"><h2 id="gqo-task-heading">Tasks</h2><span id="gqo-task-count" class="count-pill">0</span></header>
+            <div class="task-table" role="table" aria-label="Tasks in selected phase">
+              <div class="task-row task-head" role="row"><span>Status</span><span>Title</span><span>Updated</span></div>
+              <div id="gqo-tasks"></div>
+            </div>
+          </section>
+
+          <aside class="panel detail-panel" aria-label="Task details">
+            <div id="gqo-detail"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
 
     <script src="dashboard.js" type="module"></script>
   </body>

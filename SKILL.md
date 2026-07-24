@@ -150,6 +150,8 @@ Allowed Task statuses are `saved`, `running`, `applied`, `failed`, `stashed`, an
 
 When docs or evidence change an existing Phase, inspect non-terminal tasks before rewriting them. If the task list no longer fits, ask the user whether to keep, update, stash, cancel, or create a new Plan. Never rewrite a Phase with `running` tasks without explicit user confirmation.
 
+Status display is inline-first. If the user asks to see Plan progress without explicitly asking for a browser dashboard, show a compact or standard status summary in the current chat/terminal. Generate or open the Plan Dashboard only when the user asks for a dashboard, browser view, preview URL, or visual progress screen. When a GIQO workflow changes Plan/Task state and a current Plan id is known, append a short inline status footer to the completion report.
+
 ## Command set
 
 GIQO supports command-style workflows documented under `commands/`. OpenCode may expose the native command as `/giqo-skill`; subwords like `/giqo-skill plan` map to the same workflow units:
@@ -176,5 +178,6 @@ Every generated package must answer:
 - Which diagrams or review artifacts are authoritative?
 - Are there unresolved saved, running, or failed UI comments/change requests?
 - Are there saved, running, failed, stashed, or cancelled tasks that change the recommended next step?
+- If Plan/Task state exists, what is the current compact status summary?
 
 If those questions are not answered, continue refining before returning.

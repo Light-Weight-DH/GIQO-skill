@@ -112,15 +112,41 @@ GIQO는 저장된 요청과 Task를 읽고 `saved → running → applied/failed
 
 ### 작업 진행 상황을 볼 때
 
-Plan Dashboard가 필요하면 이렇게 요청합니다.
+현재 Plan 상태만 빠르게 보고 싶으면 이렇게 요청합니다.
 
 ```text
-/giqo-skill 현재 Plan/Phase/Task 진행 상황을 읽기 전용 대시보드로 보여줘.
+/giqo-skill 현재 Plan 상태 보여줘.
+```
+
+GIQO는 기본적으로 현재 채팅이나 터미널에 짧은 요약을 보여줍니다.
+
+```text
+Plan: UI 컴포넌트화 테스트 계획
+Progress: 1/6 applied
+Health: running
+```
+
+작업을 마친 뒤에도 현재 Plan id를 알 수 있으면 completion report 끝에 이 요약을 덧붙입니다.
+
+브라우저에서 보고 싶을 때만 dashboard를 명시적으로 요청합니다.
+
+```text
+/giqo-skill 현재 Plan/Phase/Task 진행 상황을 읽기 전용 대시보드로 열어줘.
 ```
 
 Dashboard는 `.giqo/plans/<plan-id>/plan.json`과 `tasks.json`을 읽어 Plan별 컬럼, Phase marker, Task 상태를 보여줍니다. 상태는 dashboard에서 직접 수정하지 않고 `/giqo-skill plan`, `/giqo-skill ingest`, `/giqo-skill apply` 흐름으로만 갱신합니다.
 
 Agent가 dashboard 파일을 만들 때는 `scripts/generate-plan-dashboard.mjs`를 사용합니다. 이 스크립트는 현재 Plan/Task 상태를 `dashboard.html`에 포함하고 `dashboard.css`, `dashboard.js`를 함께 복사합니다.
+
+Agent가 터미널이나 일반 채팅용 inline status를 만들 때는 read-only helper인 `scripts/show-plan-status.mjs`를 사용할 수 있습니다. 직접 실행해야 하는 명령은 아니지만, 필요하면 아래처럼 사용할 수 있습니다.
+
+```bash
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format compact
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format standard
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format rich --color
+```
+
+`compact`는 좁은 터미널용 요약, `standard`는 Phase 진행률 표, `rich`는 ANSI progress bar 중심 출력입니다. 이 명령도 dashboard와 마찬가지로 읽기 전용이며 `.giqo/plans/<plan-id>/plan.json`과 `tasks.json`만 읽습니다.
 
 ## Visual Review Mode
 

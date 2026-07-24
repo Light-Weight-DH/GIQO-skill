@@ -1,6 +1,10 @@
 # GIQO Skill
 
 <p align="center">
+  <img src="git-readme/GIQO_logo.png" alt="GIQO logo" width="520">
+</p>
+
+<p align="center">
   <strong>Garbage In, Quality Out</strong><br>
   정리되지 않은 요구사항, 이미지, 레퍼런스, 기존 프로젝트를 실제 구현 가능한 설계 문서와 작업 계획으로 바꾸는 agent skill입니다.
 </p>
@@ -15,6 +19,7 @@
 <p align="center">
   <a href="#핵심-워크플로우">핵심 워크플로우</a> ·
   <a href="#실제-사용-흐름">실제 사용 흐름</a> ·
+  <a href="#작업-흐름-관리">작업 흐름 관리</a> ·
   <a href="#visual-review-mode">Visual Review</a> ·
   <a href="#skill-명령어와-ui에서-보이는-것">Skill 명령어</a> ·
   <a href="docs/visual-review.md">Visual Review 상세</a>
@@ -63,31 +68,23 @@ rough inputs / existing repo / screenshots / review notes
 
 ### 기존 프로젝트에서 바로 시작
 
-사용자는 작업 중인 프로젝트 루트에서 자연어로 요청합니다.
+작업 중인 프로젝트 루트에서 자연어로 요청합니다.
 
 ```text
 /giqo-skill 이 디렉토리의 기존 프로젝트를 바탕으로, 현재 구조를 유지하면서 구현 가능한 설계 문서와 작업 계획을 만들어줘.
 ```
 
-GIQO는 먼저 레포 구조, 기존 코드, 문서, `.giqo/` 상태를 읽고 필요한 경우 짧게 확인합니다.
-
-```text
-확인할 사항:
-1. 이번 계획은 MVP 범위로 잡을까요, 전체 리뉴얼 범위로 잡을까요?
-2. 기존 API/DB 구조는 유지하는 전제로 볼까요?
-```
-
-사용자가 답하거나 “알아서 가정해줘”라고 하면, GIQO는 필요한 문서만 만들고 `05_IMPLEMENTATION_PLAN.md`에 다음 작업 순서를 남깁니다.
+GIQO는 레포 구조, 기존 코드, 문서, `.giqo/` 상태를 읽고 필요한 문서와 작업 계획만 만듭니다. 불명확한 부분은 꼭 필요한 질문만 하거나 `02_ASSUMPTIONS.md`에 가정으로 남깁니다.
 
 ### 레퍼런스나 자료가 있을 때
 
-스크린샷, 경쟁 서비스 링크, 기획 메모, 회의록, 기존 문서를 넣어둔 뒤 요청합니다.
+스크린샷, 경쟁 서비스 링크, 기획 메모, 회의록, 기존 문서를 함께 넣고 요청합니다.
 
 ```text
 /giqo-skill ./input 자료랑 현재 프로젝트를 같이 보고, UI/UX 명세와 구현 계획을 업데이트해줘.
 ```
 
-GIQO는 자료를 신뢰도와 관련도별로 분류하고, 충돌하는 내용은 assumptions나 risks에 남깁니다. UI가 중요하면 Visual Review 화면도 만들거나 갱신합니다.
+GIQO는 자료를 신뢰도와 관련도별로 분류하고, 충돌하는 내용은 assumptions나 risks에 남깁니다. UI가 중요하면 [Visual Review](#visual-review-mode) 화면도 만들거나 갱신합니다.
 
 ### 생짜 아이디어만 있을 때
 
@@ -98,7 +95,67 @@ GIQO는 자료를 신뢰도와 관련도별로 분류하고, 충돌하는 내용
 불명확한 건 최소한만 물어보고, 스킵하면 합리적으로 가정해줘.
 ```
 
-GIQO는 먼저 범위, 사용자, 핵심 플로우를 좁히고, 필요한 문서 세트를 선택합니다. 자료가 부족한 부분은 `02_ASSUMPTIONS.md`에 이유와 함께 기록합니다.
+GIQO는 범위, 사용자, 핵심 플로우를 먼저 좁히고 필요한 문서 세트만 선택합니다. 자료가 부족한 부분은 이유와 함께 가정으로 기록합니다.
+
+상세 정책은 [기존 프로젝트 모드](references/existing-project-mode.md), [문서 선택 기준](references/document-selection.md), [질문 정책](references/interview-policy.md)을 참고하세요.
+
+## 작업 흐름 관리
+
+GIQO 산출물은 구현자가 바로 따라갈 수 있도록 작업 단위를 함께 관리할 수 있습니다. 작업 흐름은 [Plan/Phase/Task 모델](references/plan-task-model.md)을 따릅니다.
+
+| 개념 | 역할 |
+|---|---|
+| Plan | 하나의 구현 목표나 변경 방향. 예: `UI 컴포넌트화 테스트 계획` |
+| Phase | Plan 안의 논리적 단계. 예: `UI 경계 조사`, `정적 레이아웃 컴포넌트 분리` |
+| Task | 실제로 진행 상태를 갖는 작업 단위. 상태는 `saved`, `running`, `applied`, `failed`, `stashed`, `cancelled` 중 하나입니다. |
+
+상태 파일은 `.giqo/plans/<plan-id>/plan.json`과 `tasks.json`에 저장됩니다. Plan과 Phase의 상태는 별도로 쓰지 않고 Task 상태에서 계산합니다.
+
+### 채팅이나 터미널에서 확인
+
+상태만 빠르게 보고 싶으면 이렇게 요청합니다.
+
+```text
+/giqo-skill 현재 Plan 상태 보여줘.
+```
+
+기본 응답은 현재 채팅이나 터미널에 바로 표시되는 요약입니다.
+
+```text
+UI 컴포넌트화 테스트 계획
+1 / 6 applied · running 0 · saved 5
+
+Phase                          Progress
+─────────────────────────────────────────
+UI 경계 조사                   1 / 2
+정적 레이아웃 컴포넌트 분리    0 / 1
+인터랙티브 보드 컴포넌트 분리  0 / 2
+계획과 UI 동작 검증            0 / 1
+```
+
+Agent는 이 요약을 만들 때 read-only helper인 [`scripts/show-plan-status.mjs`](scripts/show-plan-status.mjs)를 사용할 수 있습니다. 직접 실행해야 하는 명령은 아니지만 필요하면 아래처럼 사용할 수 있습니다.
+
+```bash
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format compact
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format standard
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format rich --color
+```
+
+### 대시보드로 확인
+
+브라우저에서 보고 싶을 때만 dashboard를 명시적으로 요청합니다.
+
+```text
+/giqo-skill 현재 Plan/Phase/Task 진행 상황을 읽기 전용 대시보드로 열어줘.
+```
+
+Plan Dashboard는 sidebar, summary, Phase, Task, detail panel로 상태를 보여주는 읽기 전용 화면입니다. 상태는 dashboard에서 직접 수정하지 않고 `/giqo-skill plan`, `/giqo-skill ingest`, `/giqo-skill apply` 흐름으로만 갱신합니다.
+
+![GIQO Plan Dashboard 예시](git-readme/GIQO_dashboard.png)
+
+Dashboard 파일을 만들 때는 [`scripts/generate-plan-dashboard.mjs`](scripts/generate-plan-dashboard.mjs)를 사용합니다. 이 스크립트는 현재 Plan/Task 상태를 `dashboard.html`에 포함하고 [`templates/plan-dashboard/`](templates/plan-dashboard/)의 CSS/JS를 함께 복사합니다.
+
+상태 표시와 dashboard 생성 정책은 [Command Policy](references/command-policy.md#status-display-policy)를 참고하세요.
 
 ### 저장된 UI 수정 요청을 적용할 때
 
@@ -110,43 +167,7 @@ Visual Review에서 요청을 저장한 뒤에는 이렇게 말합니다.
 
 GIQO는 저장된 요청과 Task를 읽고 `saved → running → applied/failed` 흐름으로 상태를 갱신하면서 문서나 실제 UI 작업에 반영합니다.
 
-### 작업 진행 상황을 볼 때
-
-현재 Plan 상태만 빠르게 보고 싶으면 이렇게 요청합니다.
-
-```text
-/giqo-skill 현재 Plan 상태 보여줘.
-```
-
-GIQO는 기본적으로 현재 채팅이나 터미널에 짧은 요약을 보여줍니다.
-
-```text
-Plan: UI 컴포넌트화 테스트 계획
-Progress: 1/6 applied
-Health: running
-```
-
-작업을 마친 뒤에도 현재 Plan id를 알 수 있으면 completion report 끝에 이 요약을 덧붙입니다.
-
-브라우저에서 보고 싶을 때만 dashboard를 명시적으로 요청합니다.
-
-```text
-/giqo-skill 현재 Plan/Phase/Task 진행 상황을 읽기 전용 대시보드로 열어줘.
-```
-
-Dashboard는 `.giqo/plans/<plan-id>/plan.json`과 `tasks.json`을 읽어 Plan별 컬럼, Phase marker, Task 상태를 보여줍니다. 상태는 dashboard에서 직접 수정하지 않고 `/giqo-skill plan`, `/giqo-skill ingest`, `/giqo-skill apply` 흐름으로만 갱신합니다.
-
-Agent가 dashboard 파일을 만들 때는 `scripts/generate-plan-dashboard.mjs`를 사용합니다. 이 스크립트는 현재 Plan/Task 상태를 `dashboard.html`에 포함하고 `dashboard.css`, `dashboard.js`를 함께 복사합니다.
-
-Agent가 터미널이나 일반 채팅용 inline status를 만들 때는 read-only helper인 `scripts/show-plan-status.mjs`를 사용할 수 있습니다. 직접 실행해야 하는 명령은 아니지만, 필요하면 아래처럼 사용할 수 있습니다.
-
-```bash
-node scripts/show-plan-status.mjs --plan-id plan-ui-components --format compact
-node scripts/show-plan-status.mjs --plan-id plan-ui-components --format standard
-node scripts/show-plan-status.mjs --plan-id plan-ui-components --format rich --color
-```
-
-`compact`는 좁은 터미널용 요약, `standard`는 Phase 진행률 표, `rich`는 ANSI progress bar 중심 출력입니다. 이 명령도 dashboard와 마찬가지로 읽기 전용이며 `.giqo/plans/<plan-id>/plan.json`과 `tasks.json`만 읽습니다.
+Visual Review 요청과 Task 연결 방식은 [UI edit mode](references/ui-edit-mode.md)와 [`scripts/link-review-requests.mjs`](scripts/link-review-requests.mjs)를 참고하세요.
 
 ## Visual Review Mode
 

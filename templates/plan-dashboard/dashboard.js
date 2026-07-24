@@ -145,11 +145,11 @@ function currentTasks() { return currentPlan().taskState?.tasks ?? []; }
 function currentPhase() { return currentPhases().find((phase) => phase.id === stateRef.activePhase); }
 function countStatus(tasks, status) { return tasks.filter((task) => task.status === status).length; }
 function planStatusOf(tasks) {
-  if (tasks.length === 0 || tasks.every((task) => task.status === "saved")) return "not-started";
+  if (tasks.length === 0) return "not-started";
   if (tasks.some((task) => task.status === "failed" || task.status === "stashed")) return "blocked";
   if (tasks.some((task) => task.status === "running")) return "running";
-  if (tasks.every((task) => task.status === "applied")) return "complete";
-  return "running";
+  if (tasks.some((task) => task.status === "applied")) return "complete";
+  return "not-started";
 }
 function percentOf(value, total) { return total > 0 ? Math.round((value / total) * 100) : 0; }
 function updatedLabel(value) { return value ? "Updated recently" : "Updated unknown"; }

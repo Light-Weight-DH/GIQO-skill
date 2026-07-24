@@ -1,6 +1,10 @@
 # GIQO Skill
 
 <p align="center">
+  <img src="git-readme/GIQO_logo.png" alt="GIQO logo" width="520">
+</p>
+
+<p align="center">
   <strong>Garbage In, Quality Out</strong><br>
   An agent skill that turns messy requirements, images, references, and existing projects into implementation-ready design docs and work plans.
 </p>
@@ -15,6 +19,7 @@
 <p align="center">
   <a href="#core-workflow">Core workflow</a> ·
   <a href="#real-user-flows">Real user flows</a> ·
+  <a href="#work-management">Work management</a> ·
   <a href="#visual-review-mode">Visual Review</a> ·
   <a href="#skill-commands-and-visible-ui">Skill commands</a> ·
   <a href="docs/visual-review.md">Visual Review details</a>
@@ -70,14 +75,7 @@ From the project root, ask naturally:
 ```
 
 GIQO reads the repo structure, existing code, docs, and `.giqo/` state, then asks only questions that materially change the plan.
-
-```text
-Questions:
-1. Should this plan target an MVP slice or the full redesign?
-2. Should existing API and DB structure be preserved?
-```
-
-If you answer or say “make reasonable assumptions,” GIQO creates only the needed docs and records the next implementation steps in `05_IMPLEMENTATION_PLAN.md`.
+It creates only the needed docs and records unclear points as explicit assumptions when you ask it to proceed.
 
 ### Use references or source materials
 
@@ -87,7 +85,7 @@ After placing screenshots, competitor links, meeting notes, or old docs in an in
 /giqo-skill Read ./input together with the current project and update the UI/UX spec and implementation plan.
 ```
 
-GIQO classifies sources by trust and relevance, records conflicts as assumptions or risks, and creates or refreshes Visual Review when UI decisions matter.
+GIQO classifies sources by trust and relevance, records conflicts as assumptions or risks, and creates or refreshes [Visual Review](#visual-review-mode) when UI decisions matter.
 
 ### Start from a raw idea
 
@@ -98,7 +96,67 @@ You can begin without a repo or polished docs.
 Ask only the minimum questions; if I skip, make reasonable assumptions.
 ```
 
-GIQO narrows the scope, users, and core flow, selects the needed documents, and records missing context in `02_ASSUMPTIONS.md`.
+GIQO narrows the scope, users, and core flow, then selects only the needed document set. Missing context is recorded as assumptions with reasons.
+
+For the detailed policy, see [existing-project mode](references/existing-project-mode.md), [document selection](references/document-selection.md), and [interview policy](references/interview-policy.md).
+
+## Work management
+
+GIQO outputs can also manage implementation work units so a builder can follow the plan directly. The workflow follows the [Plan/Phase/Task model](references/plan-task-model.md).
+
+| Concept | Role |
+|---|---|
+| Plan | One implementation goal or direction. Example: `UI componentization test plan` |
+| Phase | A logical step inside a Plan. Example: `UI boundary survey`, `Static layout component split` |
+| Task | The actual unit with status. Allowed statuses are `saved`, `running`, `applied`, `failed`, `stashed`, and `cancelled`. |
+
+State is stored in `.giqo/plans/<plan-id>/plan.json` and `tasks.json`. Plan and Phase status are not stored separately; they are derived from Task status.
+
+### Check in chat or terminal
+
+For a quick status check, ask:
+
+```text
+/giqo-skill Show the current Plan status.
+```
+
+The default response is an inline summary in the current chat or terminal.
+
+```text
+UI 컴포넌트화 테스트 계획
+1 / 6 applied · running 0 · saved 5
+
+Phase                          Progress
+─────────────────────────────────────────
+UI 경계 조사                   1 / 2
+정적 레이아웃 컴포넌트 분리    0 / 1
+인터랙티브 보드 컴포넌트 분리  0 / 2
+계획과 UI 동작 검증            0 / 1
+```
+
+Agents can use the read-only helper [`scripts/show-plan-status.mjs`](scripts/show-plan-status.mjs) to render that inline status. Users usually do not need to run it directly, but it is available:
+
+```bash
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format compact
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format standard
+node scripts/show-plan-status.mjs --plan-id plan-ui-components --format rich --color
+```
+
+### Check in a dashboard
+
+Ask explicitly when you want a browser dashboard:
+
+```text
+/giqo-skill Open the current Plan/Phase/Task progress as a read-only dashboard.
+```
+
+Plan Dashboard is a read-only screen with a sidebar, summary cards, Phase list, Task list, and detail panel. It does not mutate state directly; state changes go through `/giqo-skill plan`, `/giqo-skill ingest`, or `/giqo-skill apply`.
+
+![GIQO Plan Dashboard example](git-readme/GIQO_dashboard.png)
+
+Agents use [`scripts/generate-plan-dashboard.mjs`](scripts/generate-plan-dashboard.mjs) to write dashboard files. The generator embeds current Plan/Task state into `dashboard.html` and copies CSS/JS from [`templates/plan-dashboard/`](templates/plan-dashboard/).
+
+For status display and dashboard generation rules, see [Command Policy](references/command-policy.md#status-display-policy).
 
 ### Apply saved UI requests
 
@@ -110,17 +168,7 @@ After saving requests in Visual Review, ask:
 
 GIQO reads saved requests and Tasks, then updates status through `saved → running → applied/failed` while reflecting the work in docs or UI implementation.
 
-### Inspect work progress
-
-Ask for a Plan Dashboard when you need a read-only progress view:
-
-```text
-/giqo-skill Show the current Plan/Phase/Task progress as a read-only dashboard.
-```
-
-The dashboard reads `.giqo/plans/<plan-id>/plan.json` and `tasks.json`, then shows columns per Plan, Phase markers, and Task status. It does not edit state directly; state changes go through `/giqo-skill plan`, `/giqo-skill ingest`, or `/giqo-skill apply`.
-
-Agents use `scripts/generate-plan-dashboard.mjs` to write dashboard files. The generator embeds the current Plan/Task state in `dashboard.html` and copies `dashboard.css` plus `dashboard.js` beside it.
+For Visual Review request to Task linkage, see [UI edit mode](references/ui-edit-mode.md) and [`scripts/link-review-requests.mjs`](scripts/link-review-requests.mjs).
 
 ## Visual Review Mode
 

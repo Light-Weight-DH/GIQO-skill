@@ -44,3 +44,33 @@ test("Given Plan state When rendering rich Then progress bar and health are prin
   assert.match(output, /│ Running 1 · Saved 1 · Failed 0/);
   assert.match(output, /└ Health running/);
 });
+
+test("Given applied and saved tasks only When rendering compact Then health is complete", () => {
+  const output = renderPlanStatus({
+    plan: { title: "부분 완료 Plan" },
+    taskState: {
+      phases: [{ id: "phase", title: "Phase", order: 0 }],
+      tasks: [
+        { id: "done", phaseId: "phase", title: "완료된 작업", status: "applied" },
+        { id: "saved", phaseId: "phase", title: "대기 중 작업", status: "saved" },
+      ],
+    },
+  }, { format: "compact" });
+
+  assert.match(output, /Health: complete/);
+});
+
+test("Given saved tasks only When rendering compact Then health is not-started", () => {
+  const output = renderPlanStatus({
+    plan: { title: "시작 전 Plan" },
+    taskState: {
+      phases: [{ id: "phase", title: "Phase", order: 0 }],
+      tasks: [
+        { id: "saved-1", phaseId: "phase", title: "대기 중 작업 1", status: "saved" },
+        { id: "saved-2", phaseId: "phase", title: "대기 중 작업 2", status: "saved" },
+      ],
+    },
+  }, { format: "compact" });
+
+  assert.match(output, /Health: not-started/);
+});

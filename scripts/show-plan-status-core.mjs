@@ -111,11 +111,11 @@ function normalize(entry) {
 }
 
 function health(tasks) {
-  if (tasks.length === 0 || tasks.every((task) => task.status === "saved")) return "not-started";
+  if (tasks.length === 0) return "not-started";
   if (tasks.some((task) => task.status === "failed" || task.status === "stashed")) return "blocked";
   if (tasks.some((task) => task.status === "running")) return "running";
-  if (tasks.every((task) => task.status === "applied")) return "complete";
-  return "running";
+  if (tasks.some((task) => task.status === "applied")) return "complete";
+  return "not-started";
 }
 
 function statusCounts(tasks) {

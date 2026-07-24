@@ -2,14 +2,14 @@
 
 Legacy workflow name: `/giqo-ui`.
 
-Create or update UI planning docs, browser review artifacts, and read-only Plan Dashboard artifacts.
+Create or update UI planning docs, browser review artifacts, and explicitly requested read-only Plan Dashboard artifacts.
 
 ## Use when
 
 1. The project includes screens, flows, visual states, or layout decisions.
 2. The user needs a clickable comment surface.
 3. Existing review comments require a UI planning update.
-4. The user needs to inspect Plan/Phase/Task progress.
+4. The user explicitly asks for a browser dashboard, preview URL, or visual Plan/Phase/Task progress screen.
 
 ## Inputs
 
@@ -18,7 +18,7 @@ Create or update UI planning docs, browser review artifacts, and read-only Plan 
 | `screen` | No | Screen or flow to focus |
 | `source` | No | Existing plan, screenshots, comments, or repo UI files |
 | `fidelity` | No | `wireframe`, `mockup`, or both |
-| `dashboard` | No | Generate or refresh the read-only Plan Dashboard |
+| `dashboard` | No | Generate or refresh the read-only Plan Dashboard only when explicitly requested |
 
 ## Reads
 
@@ -46,11 +46,12 @@ It must not edit application source.
 5. Update implementation tasks for accepted UI changes.
 6. In brownfield mode, name affected existing screens and states.
 7. If the user asks to continue UI edits but no saved comments or edit requests exist, report the current state instead of inventing work.
-8. When dashboard output is requested, run `scripts/generate-plan-dashboard.mjs` to render Plan, Phase, and Task progress read-only from `.giqo/plans/<plan-id>/plan.json` and `tasks.json`.
-9. Do not allow dashboard edits to mutate task state; use `/giqo-skill ingest`, `/giqo-skill plan`, or `/giqo-skill apply` for state changes.
+8. If the user only asks for Plan status or progress, do not generate dashboard artifacts; report inline status in the current chat or terminal.
+9. When dashboard output is explicitly requested, run `scripts/generate-plan-dashboard.mjs` to render Plan, Phase, and Task progress read-only from `.giqo/plans/<plan-id>/plan.json` and `tasks.json`.
+10. Do not allow dashboard edits to mutate task state; use `/giqo-skill ingest`, `/giqo-skill plan`, or `/giqo-skill apply` for state changes.
 
 ## Completion report
 
-Report changed UI docs, review artifact paths, dashboard paths, comment coverage, and how to open the review or dashboard screen.
+Report changed UI docs, review artifact paths, dashboard paths when generated, comment coverage, and how to open the review or dashboard screen. If dashboard was not explicitly requested but Plan state exists, include only a short inline status summary.
 
 If there is nothing to apply or ingest, say so directly, for example: `No saved UI edit requests were found for the current run.`

@@ -58,6 +58,19 @@ Plan and Phase status are derived from Task status. Commands must not write sepa
 
 If a Phase has `running` tasks, no command may rewrite that Phase's task list without an explicit user decision.
 
+## Status display policy
+
+Plan status checks are inline-first. A request such as "plan 상태 보여줘", "progress 알려줘", or "진행 상황 확인" should not create or open a browser dashboard by default.
+
+Use this decision flow:
+
+1. If the user only asks for status or progress, reply with an inline summary in the current chat or terminal. Use compact output for narrow contexts and standard output for normal terminal width.
+2. If the user explicitly asks for a dashboard, browser view, preview URL, or visual progress screen, generate or refresh the read-only Plan Dashboard.
+3. If the wording could mean either inline summary or browser dashboard, ask one narrow question: `여기서 요약으로 볼까요, 브라우저 dashboard로 열까요?`
+4. After `/giqo-skill plan`, `/giqo-skill ingest`, or `/giqo-skill apply` changes Plan/Task state, append a short inline status footer to the completion report when a current Plan id is known.
+
+`scripts/show-plan-status.mjs` is a read-only helper for inline status rendering. It reads `.giqo/plans/<plan-id>/plan.json` and `tasks.json`; it must not mutate Plan, Phase, Task, dashboard, or application state.
+
 ## Apply boundary
 
 `/giqo-skill plan`, `/giqo-skill ui`, and `/giqo-skill ingest` propose changes unless their command spec says they write generated artifacts. `/giqo-skill apply` is the command that turns approved proposals into project files.
